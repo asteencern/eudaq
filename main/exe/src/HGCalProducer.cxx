@@ -6,13 +6,15 @@
 #include "eudaq/Utils.hh"
 #include "eudaq/OptionParser.hh"
 #include "eudaq/ExampleHardware.hh"
+#include "hgcal/parameters.hh"
 #include <iostream>
 #include <ostream>
 #include <vector>
+#include <cstdio>
 
 // A name to identify the raw data format of the events generated
 // Modify this to something appropriate for your producer.
-static const std::string EVENT_TYPE = "Example";
+static const std::string EVENT_TYPE = "HGCal";
 
 // Declare a new class that inherits from eudaq::Producer
 class HGCalProducer : public eudaq::Producer {
@@ -34,8 +36,17 @@ class HGCalProducer : public eudaq::Producer {
       std::cout << "Example Parameter = " << m_exampleparam << std::endl;
       hardware.Setup(m_exampleparam);
 
+      for (uint32_t RPiCounter = 0; RPiCounter < hgcalParameters::nRPis; ++RPiCounter) {
+        std::FILE *RPiConnection = popen(("ssh -T pi@" + hgcalParameters::RPi_ipMap[RPiCounter]).data(), "w");
+        fprintf(RPiConnection, ("echo \"Sending data to RPi number \"" + eudaq::to_string(1+RPiCounter) + ", with IP address " + hgcalParameters::RPi_ipMap[RPiCounter] + " > $HOME/test/testOutput.txt").data());
+        pclose(RPiConnection);
+        // At the end, set the status that will be displayed in the Run Control.
+        SetStatus(eudaq::Status::LVL_OK, "Configured pi number (" + eudaq::to_string(1+RPiCounter) + config.Name() + ")");
+        EUDAQ_INFO(("Successfuly configured RPi number " + eudaq::to_string(1+RPiCounter)).data());
+      }
+
       // At the end, set the status that will be displayed in the Run Control.
-      SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
+      // SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
     }
 
     // This gets called whenever a new run is started
