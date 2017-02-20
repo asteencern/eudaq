@@ -37,8 +37,13 @@ class HGCalProducer : public eudaq::Producer {
       hardware.Setup(m_exampleparam);
 
       for (uint32_t RPiCounter = 0; RPiCounter < hgcalParameters::nRPis; ++RPiCounter) {
+        EUDAQ_INFO(("Configuring RPi number " + eudaq::to_string(1+RPiCounter) + " with IP address " + hgcalParameters::RPi_ipMap[RPiCounter]).data());
         std::FILE *RPiConnection = popen(("ssh -T pi@" + hgcalParameters::RPi_ipMap[RPiCounter]).data(), "w");
-        fprintf(RPiConnection, ("echo \"Sending data to RPi number \"" + eudaq::to_string(1+RPiCounter) + ", with IP address " + hgcalParameters::RPi_ipMap[RPiCounter] + " > $HOME/test/testOutput.txt").data());
+        if (RPiConnection == NULL) {
+          EUDAQ_ERROR(("Unable to open ssh connection to RPi with IP address " + hgcalParameters::RPi_ipMap[RPiCounter]).data());
+          continue;
+        }
+        fprintf(RPiConnection, ("echo \"Testing sending data to RPi number \"" + eudaq::to_string(1+RPiCounter) + ", with IP address " + hgcalParameters::RPi_ipMap[RPiCounter] + " > $HOME/test/testOutput.txt").data());
         pclose(RPiConnection);
         // At the end, set the status that will be displayed in the Run Control.
         SetStatus(eudaq::Status::LVL_OK, "Configured pi number (" + eudaq::to_string(1+RPiCounter) + config.Name() + ")");
