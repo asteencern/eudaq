@@ -7,12 +7,12 @@ namespace ipbus{
     m_hw = new uhal::HwInterface( manager.getDevice( deviceName ) );
   }
 
-// ~IpbusTestController::IpbusTestController()
-//   {
-//     m_data.clear();
-//     delete m_hw;
-//   }
-
+  IpbusTestController::~IpbusTestController()
+  {
+    m_data.clear();
+    delete m_hw;
+  }
+  
   uint32_t IpbusTestController::ReadRegister( const std::string &name )
   {
     try {

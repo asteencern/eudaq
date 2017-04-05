@@ -12,7 +12,7 @@ namespace ipbus {
   class IpbusTestController{
   public:
     IpbusTestController(const std::string & connectionFile, const std::string & deviceName);
-    //~IpbusTestController();
+    ~IpbusTestController();
   private:
     uhal::HwInterface *m_hw;
     std::vector<uint32_t> m_data;
