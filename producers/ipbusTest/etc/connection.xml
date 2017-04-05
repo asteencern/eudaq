@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connections>
+  <connection id="DummyControl" uri="chtcp-2.0://localhost:10203?target=localhost:50001" address_table="file://control.xml" />
+  <connection id="HEXABOARD0" uri="chtcp-2.0://localhost:10203?target=localhost:60001" address_table="file://address.xml" />
+  <connection id="HEXABOARD1" uri="chtcp-2.0://localhost:10203?target=localhost:60002" address_table="file://address.xml" />
+  <connection id="HEXABOARD2" uri="chtcp-2.0://localhost:10203?target=localhost:60003" address_table="file://address.xml" />
+  <connection id="HEXABOARD3" uri="chtcp-2.0://localhost:10203?target=localhost:60004" address_table="file://address.xml" />
+  <connection id="HEXABOARD4" uri="chtcp-2.0://localhost:10203?target=localhost:60005" address_table="file://address.xml" />
+</connections>
+

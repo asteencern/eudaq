@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<node> 
+  <node id="CONTROL">
+    <node id="TRIGGER" address="0x00" permission="rw"/>
+    <node id="BUSY" address="0x01" permission="rw"/>
+    <node id="READ" address="0x02" permission="rw"/>
+    <node id="HEXABOARD0.WRITTEN" address="0x03" permission="rw"/>
+    <node id="HEXABOARD1.WRITTEN" address="0x04" permission="rw"/>
+    <node id="HEXABOARD2.WRITTEN" address="0x05" permission="rw"/>
+    <node id="HEXABOARD3.WRITTEN" address="0x06" permission="rw"/>
+    <node id="HEXABOARD4.WRITTEN" address="0x07" permission="rw"/>
+  </node>
+</node>
+
