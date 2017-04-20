@@ -2,8 +2,8 @@
 
 <node> 
   <node id="HEXA">
-    <node id="FIFO" address="0x0000" size="7697" permission="rw" mode="incremental"/>
-    <node id="CRC" address="0x1e11" permission="rw"/>
+    <node id="FIFO" address="0x0000" size="30788" permission="rw" mode="incremental"/>
+    <node id="CRC" address="0x7844" permission="rw"/>
   </node>
 
 </node>

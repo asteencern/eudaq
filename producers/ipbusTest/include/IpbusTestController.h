@@ -22,6 +22,7 @@ namespace ipbus {
     void ReadDataBlock(const std::string & blkName, uint32_t blkSize);
     void SetUhalLogLevel(unsigned char lvl);
     void ResetTheData();
+    uhal::HwInterface *getInterface() const {return m_hw;};
     
     std::vector<uint32_t> const & getData(){return m_data;}
   private:
