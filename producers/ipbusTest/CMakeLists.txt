@@ -11,8 +11,8 @@ LINK_DIRECTORIES( ${LINK_DIRECTORIES} ${EXTERN_BOOST_LIB_PREFIX} ${EXTERN_PUGIXM
 ADD_EXECUTABLE(${ipbus_name} src/IpbusTestProducer.cxx ${sourcefiles})
 ADD_EXECUTABLE(${hexa_name} src/HexaBoardProducer.cxx ${sourcefiles})
 
-TARGET_LINK_LIBRARIES(${ipbus_name} EUDAQ ${EUDAQ_THREADS_LIB} boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options cactus_extern_pugixml cactus_uhal_log cactus_uhal_grammars cactus_uhal_uhal)
-TARGET_LINK_LIBRARIES(${hexa_name} EUDAQ ${EUDAQ_THREADS_LIB} boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options cactus_extern_pugixml cactus_uhal_log cactus_uhal_grammars cactus_uhal_uhal)
+TARGET_LINK_LIBRARIES(${ipbus_name} EUDAQ ${EUDAQ_THREADS_LIB} boost_timer boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options cactus_extern_pugixml cactus_uhal_log cactus_uhal_grammars cactus_uhal_uhal)
+TARGET_LINK_LIBRARIES(${hexa_name} EUDAQ ${EUDAQ_THREADS_LIB} boost_timer boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options cactus_extern_pugixml cactus_uhal_log cactus_uhal_grammars cactus_uhal_uhal)
 
 INSTALL(TARGETS  ${ipbus_name} ${hexa_name}
   RUNTIME DESTINATION bin

@@ -15,6 +15,11 @@
 
 #include <boost/crc.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/timer/timer.hpp>
+#include <boost/thread/thread.hpp>
+
+#include <TFile.h>
+#include <TH1D.h>
 
 #include "IpbusTestController.h"
 
@@ -22,6 +27,11 @@
 // Modify this to something appropriate for your producer.
 static const std::string EVENT_TYPE = "HEXABOARD";
 
+
+void readFIFOThread( ipbus::IpbusTestController* orm, uint32_t *blockSize)
+{
+  orm->ReadDataBlock("HEXA.FIFO",*blockSize);
+}
 
 // Declare a new class that inherits from eudaq::Producer
 class HexaBoardProducer : public eudaq::Producer {
@@ -35,6 +45,8 @@ private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusTestController* > m_orms;
   std::unique_ptr<ipbus::IpbusTestController>  m_controlHw;
+  TFile *m_outrootfile;
+  TH1D *m_htime;
   enum DAQState {
     STATE_ERROR,
     STATE_UNCONF,
@@ -49,7 +61,7 @@ private:
 public:
   bool checkCRC( const std::string & crcNodeName, ipbus::IpbusTestController *ptr )
   {
-    std::cout << "Start checkCRC" << std::endl;
+    //   std::cout << "Start checkCRC" << std::endl;
     std::vector<uint32_t> tmp=ptr->getData();
     uint32_t *data=&tmp[0];
     boost::crc_32_type checksum;
@@ -68,10 +80,20 @@ public:
 
   void MainLoop() 
   {
+    std::ostringstream os( std::ostringstream::ate );
     while (m_state != STATE_GOTOTERM){
       if( m_state != STATE_RUNNING ) {
-	std::cout << "je suis dans la main loop" << std::endl;
-	std::cout << "m_state = " << m_state << std::endl;
+	os.str("");
+	os << "je suis dans la main loop et le state c'est STATE_";
+	switch(m_state){
+	case STATE_ERROR: {os << "ERROR"; break;}
+	case STATE_UNCONF: {os << "UNCONF"; break;}
+	case STATE_GOTOCONF: {os << "GOTOCONF"; break;}
+	case STATE_CONFED: {os << "CONFED"; break;}
+	case STATE_GOTORUN: {os << "GOTORUN"; break;}
+	case STATE_GOTOSTOP: {os << "GOTOSTOP"; break;}
+	}
+	std::cout << os.str() << std::endl;
 	eudaq::mSleep(1000);
       }
       if (m_state == STATE_UNCONF) {
@@ -81,12 +103,18 @@ public:
 
       if (m_state == STATE_RUNNING) {
 	if( m_controlHw->ReadRegister( "CONTROL.READ" )!=1 ) continue;
+	boost::timer::cpu_timer timer;
+	boost::timer::cpu_times times;
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
-	for( std::vector<ipbus::IpbusTestController*>::iterator it=m_orms.begin(); it!=m_orms.end(); ++it ){
-	  (*it)->ReadDataBlock("HEXA.FIFO",m_blockSize);
-	  if( checkCRC("HEXA.CRC", (*it) )!=1 ) continue;//
-	  ev.AddBlock( 1,(*it)->getData() );
+	boost::thread threadVec[m_orms.size()];
+	for( int i=0; i<(int)m_orms.size(); i++)
+	  threadVec[i]=boost::thread(readFIFOThread,m_orms[i],&m_blockSize);
+	for( int i=0; i<(int)m_orms.size(); i++){
+	  threadVec[i].join();
+	  ev.AddBlock( i,m_orms[i]->getData() );
 	}
+	times=timer.elapsed();
+	m_htime->Fill(times.wall/1e9);
 	m_controlHw->SetRegister( "CONTROL.READ",0 );
 	SendEvent(ev);
 	m_ev++;
@@ -148,6 +176,10 @@ private:
     SendEvent( eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run) );
     std::cout << "ca a du marcher" << std::endl;
 
+    //create root objects
+    m_outrootfile = new TFile("../data/time.root","RECREATE");
+    m_htime = new TH1D("time","",10000,0,1);
+
     m_state = STATE_RUNNING;
     // At the end, set the status that will be displayed in the Run Control.
     SetStatus(eudaq::Status::LVL_OK, "Started");
@@ -159,6 +191,8 @@ private:
       SetStatus(eudaq::Status::LVL_OK, "Stopping");
       //m_tlu->SetTriggerVeto(1);
       m_state = STATE_GOTOSTOP;
+      m_outrootfile->Write();
+      m_outrootfile->Close();
       while (m_state == STATE_GOTOSTOP) {
 	eudaq::mSleep(1000); //waiting for EORE being send
       }
