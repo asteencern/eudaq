@@ -65,6 +65,7 @@ private:
   int m_evtID;
   uint16_t m_numberOfBoards;
   std::map<int,hgcal_channel> m_channelMap;
+  std::map<int,int> m_toaMap;
 
   edm::EDGetTokenT<HGCalTBSkiroc2CMSCollection> m_HGCalTBSkiroc2CMSCollection;
 
@@ -127,9 +128,14 @@ void PedestalPlotter::analyze(const edm::Event& event, const edm::EventSetup& se
       if( essource_.emap_.existsEId(eid) ){
 	std::pair<int,HGCalTBDetId> p( iboard*1000+(iski%HGCAL_TB_GEOMETRY::N_SKIROC_PER_HEXA)*100+ichan,skiroc.detid(ichan) );
 	setOfConnectedDetId.insert(p);
+	int nhittoa=0;
+	m_toaMap.insert( std::pair<int,int>( iboard*1000+(iski%HGCAL_TB_GEOMETRY::N_SKIROC_PER_HEXA)*100+ichan,nhittoa ) );
       }
       else continue;
-
+      
+      if( skiroc.TOARise(ichan)>4 )
+	m_toaMap[iboard*1000+(iski%HGCAL_TB_GEOMETRY::N_SKIROC_PER_HEXA)*100+ichan]++;
+      
       for( size_t it=0; it<NUMBER_OF_SCA; it++ ){
 	if( rollpositions[it]<2 ){ //keep only 2 first time sample for pedestal evaluation
 	  uint32_t key=iboard*100000+(iski%HGCAL_TB_GEOMETRY::N_SKIROC_PER_HEXA)*10000+ichan*100+it;
@@ -189,6 +195,7 @@ void PedestalPlotter::endJob()
   std::map<int,TH2Poly*>  hgRMSMap;
   std::map<int,TH2Poly*>  lgRMSMap;
   std::map<int,TH2Poly*>  chanMap;
+  std::map<int,TH2Poly*>  toaMap;
   std::ostringstream os( std::ostringstream::ate );
   TH2Poly *h;
   int Board_IU = 0;
@@ -199,19 +206,20 @@ void PedestalPlotter::endJob()
     Board_IU = 0;
     Board_IV = 0;	
 
-    if( (ib == 6) || (ib == 9) ){
-	Board_IU = 0;
-	Board_IV = -1;
-    }
+    // Only central module in FH -> we need a better geometry manager
+    // if( (ib == 6) || (ib == 9) ){
+    // 	Board_IU = 0;
+    // 	Board_IV = -1;
+    // }
 
-    if( (ib == 5) || (ib == 8) ){
-        Board_IU = 1;
-        Board_IV = -1;
-    }
+    // if( (ib == 5) || (ib == 8) ){
+    //     Board_IU = 1;
+    //     Board_IV = -1;
+    // }
 
-    if(ib <= 3) Board_Layer = ib + 1;
-    else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
-    else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
+    // if(ib <= 3) Board_Layer = ib + 1;
+    // else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
+    // else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
 
     os.str("");
     os << "HexaBoard" << ib ;
@@ -223,6 +231,15 @@ void PedestalPlotter::endJob()
     h->SetTitle(os.str().c_str());
     InitTH2Poly(*h, Board_Layer, Board_IU, Board_IV);
     chanMap.insert( std::pair<int,TH2Poly*>(ib,h) );
+
+    h=dir.make<TH2Poly>();
+    os.str("");
+    os<<"TOA_HITS_"<<"Layer_"<<Board_Layer<<"_Sensor_IU_"<<Board_IU<<"_Sensor_IV_"<<Board_IV;;
+    h->SetName(os.str().c_str());
+    h->SetTitle(os.str().c_str());
+    InitTH2Poly(*h, Board_Layer, Board_IU, Board_IV);
+    toaMap.insert( std::pair<int,TH2Poly*>(ib,h) );
+    
     TFileDirectory hgpdir = dir.mkdir( "HighGainPedestal" );
     TFileDirectory lgpdir = dir.mkdir( "LowGainPedestal" );
     TFileDirectory hgndir = dir.mkdir( "HighGainNoise" );
@@ -264,7 +281,8 @@ void PedestalPlotter::endJob()
 
     }
   }
-  
+
+  std::cout << "number of toa channels = " << m_toaMap.size() << std::endl;
   for( std::map<int,hgcal_channel>::iterator it=m_channelMap.begin(); it!=m_channelMap.end(); ++it ){
     std::sort( it->second.highGain.begin(),it->second.highGain.end() );
     std::sort( it->second.lowGain.begin(),it->second.lowGain.end() );
@@ -324,6 +342,7 @@ void PedestalPlotter::endJob()
       }
     }
     chanMap[ iboard ]->Fill(iux , iuy, iski*1000+ichan );
+    toaMap[ iboard ]->Fill(iux , iuy, m_toaMap[it->first] );
     if( m_writePedestalFile ){
       pedestalHG << std::endl;
       pedestalLG << std::endl;
@@ -353,7 +372,7 @@ void PedestalPlotter::endJob()
     for( std::map<int,double>::iterator it=meanNoise.begin(); it!=meanNoise.end(); ++it ){
       meanNoise[ it->first ] = meanNoise[ it->first ]/countNoise[ it->first ];
       rmsNoise[ it->first ] = std::sqrt( rmsNoise[ it->first ]/countNoise[ it->first ] - meanNoise[ it->first ]*meanNoise[ it->first ] );
-      std::cout << it->first/10 << " " << it->first%10 << " " << meanNoise[ it->first ] << " " << rmsNoise[ it->first ] << std::endl;
+      std::cout << it->first << " " << meanNoise[ it->first ] << " " << rmsNoise[ it->first ] << std::endl;
     }
     for( std::set< std::pair<int,HGCalTBDetId> >::iterator it=setOfConnectedDetId.begin(); it!=setOfConnectedDetId.end(); ++it ){
       HGCalTBDetId detid=(*it).second;

@@ -224,17 +224,17 @@ void RawHitPlotter::analyze(const edm::Event& event, const edm::EventSetup& setu
     for(size_t ib = 0; ib<HGCAL_TB_GEOMETRY::NUMBER_OF_HEXABOARD; ib++) {
       Board_IU = 0;
       Board_IV = 0;	
-      if( (ib == 6) || (ib == 9) ){
-	Board_IU = 0;
-	Board_IV = -1;
-      }
-      if( (ib == 5) || (ib == 8) ){
-        Board_IU = 1;
-        Board_IV = -1;
-      }
-      if(ib <= 3) Board_Layer = ib + 1;
-      else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
-      else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
+      // if( (ib == 6) || (ib == 9) ){
+      // 	Board_IU = 0;
+      // 	Board_IV = -1;
+      // }
+      // if( (ib == 5) || (ib == 8) ){
+      //   Board_IU = 1;
+      //   Board_IV = -1;
+      // }
+      // if(ib <= 3) Board_Layer = ib + 1;
+      // else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
+      // else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
       for( size_t it=0; it<NUMBER_OF_TIME_SAMPLES; it++ ){
 	TH2Poly *h=dir.make<TH2Poly>();
 	os.str("");
@@ -389,17 +389,17 @@ void RawHitPlotter::endJob()
   for(size_t ib = 0; ib<HGCAL_TB_GEOMETRY::NUMBER_OF_HEXABOARD; ib++) {
     Board_IU = 0;
     Board_IV = 0;	
-    if( (ib == 6) || (ib == 9) ){
-	Board_IU = 0;
-	Board_IV = -1;
-    }
-    if( (ib == 5) || (ib == 8) ){
-        Board_IU = 1;
-        Board_IV = -1;
-    }
-    if(ib <= 3) Board_Layer = ib + 1;
-    else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
-    else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
+    // if( (ib == 6) || (ib == 9) ){
+    // 	Board_IU = 0;
+    // 	Board_IV = -1;
+    // }
+    // if( (ib == 5) || (ib == 8) ){
+    //     Board_IU = 1;
+    //     Board_IV = -1;
+    // }
+    // if(ib <= 3) Board_Layer = ib + 1;
+    // else if( (ib == 4) || (ib == 5) || (ib == 6) ) Board_Layer = 5;
+    // else if( (ib == 7) || (ib == 8) || (ib == 9) ) Board_Layer = 6;
     os.str("");
     os << "HexaBoard" << ib ;
     TFileDirectory dir = fs->mkdir( os.str().c_str() );
