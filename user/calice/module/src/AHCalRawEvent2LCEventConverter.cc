@@ -2,8 +2,6 @@
 #include "eudaq/RawEvent.hh"
 #include "eudaq/Logger.hh"
 
-
-
 namespace eudaq{
 
   using namespace std;
@@ -42,7 +40,6 @@ namespace eudaq{
     const std::vector<int>& getDataInt()const{return _intVec;}
   };
 
-  
   bool AHCalRawEvent2LCEventConverter::Converting(EventSPC d1, LCEventSP d2, ConfigurationSPC conf) const{
     // try to cast the Event
     auto& source = *(d1.get());
@@ -63,10 +60,9 @@ namespace eudaq{
     }
 
     // no contents -ignore
-    if(rawev->NumBlocks() < 5) return true;
+   if (rawev->NumBlocks() < 2) return true;
            
     unsigned int nblock = 0;
-	
   
     if(rawev->NumBlocks() > 2) {
 
@@ -86,6 +82,16 @@ namespace eudaq{
 
       //	IMPL::LCEventImpl  & lcevent = dynamic_cast<IMPL::LCEventImpl&>(result);
       //	lcevent.setTimeStamp((long int)&bl2[0]);
+
+      if (colName == "EudaqDataHodoscope") {
+//         auto bl3 = rawev->GetBlock(nblock++);
+//         if (bl3.size() > 0) cout << "Error, block 3 is filled in the BIF raw data" << endl;
+         LCCollectionVec *col = 0;
+         //for individual collection per hodoscope:
+         string colName = rawev->GetTag("SRC", string("UnidentifiedHodoscope"));
+         col = createCollectionVec(result, colName, dataDesc, timestamp, DAQquality);
+         getDataLCIOGenericObject(rawev, col, nblock);
+      }
 
       if ( colName ==  "EUDAQDataBIF") {
 	//-------------------
@@ -154,7 +160,6 @@ namespace eudaq{
 	  col=createCollectionVec(result,"TimeStamps", "i:StartTS_L;i:StartTS_H;i:StopTS_L;i:StopTS_H;i:TrigTS_L;i:TrigTS_H", timestamp, DAQquality);
 	  getDataLCIOGenericObject(bl6,col,nblock);
 	}
-
 
       }
     }
@@ -226,7 +231,6 @@ namespace eudaq{
     }
   }
 
- 
   void AHCalRawEvent2LCEventConverter::getDataLCIOGenericObject(const std::vector<uint8_t> & bl, LCCollectionVec *col, int nblock) const{
   
     // further blocks should be data (currently limited to integer)
@@ -246,7 +250,6 @@ namespace eudaq{
    
   }
   
-
   void AHCalRawEvent2LCEventConverter::getDataLCIOGenericObject(eudaq::RawDataEvent const * rawev, LCCollectionVec *col, int nblock, int nblock_max) const{
   
     if(nblock_max ==0 ) nblock_max = rawev->NumBlocks();
@@ -268,6 +271,5 @@ namespace eudaq{
       }
     }
   }
-
 
 }

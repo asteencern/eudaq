@@ -56,7 +56,7 @@ namespace eudaq {
          void DoTerminate() override final;
          void DoReset() override final {
          }
-         void Exec() override final;
+         void RunLoop() override final;
 
          void SetReader(AHCALReader *r) {
             _reader = r;

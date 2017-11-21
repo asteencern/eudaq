@@ -332,9 +332,9 @@ namespace eudaq {
 //      return deqEvent;
    }
 
-   void AHCALProducer::Exec() {
-      std::cout << " Main loop " << std::endl;
-      StartCommandReceiver();
+   void AHCALProducer::RunLoop() {
+      std::cout << " Main Run loop " << std::endl;
+      //StartCommandReceiver();
       deque<char> bufRead;
       // deque for events: add one event when new acqId is arrived: to be determined in reader
 //      deque<eudaq::RawDataEvent *> deqEvent2;
@@ -344,7 +344,7 @@ namespace eudaq {
       // copy to C array, then to vector
       char buf[bufsize]; //buffer to read from TCP socket
 
-      while (!_terminated) {
+      while (_running) {
          // wait until configured and connected
          std::unique_lock<std::mutex> myLock(_mufd);
 

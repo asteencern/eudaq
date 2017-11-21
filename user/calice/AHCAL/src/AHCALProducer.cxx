@@ -28,7 +28,7 @@ int main(int /*argc*/, const char ** argv) {
       //producer.SetReader(new eudaq::SiReader(0));
       // And set it running...
       // producer.MainLoop();
-      producer.Exec();
+      producer.RunLoop();
       // When the readout loop terminates, it is time to go
       std::cout << "Quitting" << std::endl;
    } catch (...) {
