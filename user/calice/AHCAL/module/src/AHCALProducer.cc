@@ -35,33 +35,10 @@ using namespace std;
 namespace eudaq {
 
    AHCALProducer::AHCALProducer(const std::string & name, const std::string & runcontrol) :
-         Producer(name, runcontrol),
-               _runNo(0),
-               _eventNo(0),
-               _fd(0),
-               _running(false),
-               _stopped(true),
-               _terminated(false),
-               _BORE_sent(false),
-               _reader(NULL),
-               _ColoredTerminalMessages(1),
-               _IgnoreLdaTimestamps(0),
-               _eventBuildingMode(EventBuildingMode::ROC),
-               _eventNumberingPreference(EventNumbering::TRIGGERID),
-               _AHCALBXID0Offset(0),
-               _AHCALBXIDWidth(0),
-               _DebugKeepBuffered(0),
-               _GenerateTriggerIDFrom(0),
-               _InsertDummyPackets(0),
-               _LdaTrigidOffset(0),
-               _LdaTrigidStartsFrom(0),
-               _port(5622),
-               _waitmsFile(0),
-               _waitsecondsForQueuedEvents(2),
-               _writerawfilename_timestamp(true),
-               _writeRaw(true),
-               _StartWaitSeconds(0)
-   {
+         Producer(name, runcontrol), _runNo(0), _eventNo(0), _fd(0), _running(false), _stopped(true), _terminated(false), _BORE_sent(false), _reader(NULL), _ColoredTerminalMessages(
+               1), _IgnoreLdaTimestamps(0), _eventBuildingMode(EventBuildingMode::ROC), _eventNumberingPreference(EventNumbering::TRIGGERID), _AHCALBXID0Offset(
+               0), _AHCALBXIDWidth(0), _DebugKeepBuffered(0), _GenerateTriggerIDFrom(0), _InsertDummyPackets(0), _LdaTrigidOffset(0), _LdaTrigidStartsFrom(0), _port(
+               5622), _waitmsFile(0), _waitsecondsForQueuedEvents(2), _writerawfilename_timestamp(true), _writeRaw(true), _StartWaitSeconds(0) {
       m_id_stream = eudaq::cstr2hash(name.c_str());
    }
 
@@ -137,7 +114,7 @@ namespace eudaq {
       if (_StartWaitSeconds) {
          std::cout << "Delayed start by " << _StartWaitSeconds << " seconds. Waiting";
          for (int i = 0; i < _StartWaitSeconds; i++) {
-            std::cout << "."<<std::flush;
+            std::cout << "." << std::flush;
             std::this_thread::sleep_for(std::chrono::seconds(1));
          }
          std::cout << std::endl;
@@ -166,8 +143,7 @@ namespace eudaq {
       if (_writerawfilename_timestamp == 1) {
          sprintf(file_timestamp, "__%02dp%02dp%02d__%02dp%02dp%02d.raw", Tm->tm_mday, Tm->tm_mon + 1, Tm->tm_year + 1900, Tm->tm_hour, Tm->tm_min, Tm->tm_sec);
          myString.assign(file_timestamp, 26);
-      } else
-         myString = ".raw";
+      } else myString = ".raw";
 
       std::string _rawFilenameTimeStamp;
       //if chosen like this, add the local time to the filename
@@ -190,8 +166,7 @@ namespace eudaq {
          std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
 
-      if (_writeRaw)
-         _rawFile.close();
+      if (_writeRaw) _rawFile.close();
       std::cout << "AHCALProducer::DoStopRun() finished" << std::endl;
       //std::cout << "AHCALProducer::OnStopRun sending EORE event with _eventNo" << _eventNo << std::endl;
       //SendEvent(RawDataEvent::EORE("CaliceObject", _runNo, _eventNo));
@@ -200,8 +175,7 @@ namespace eudaq {
       //SendEvent(std::move(ev));
    }
 
-   bool AHCALProducer::OpenConnection()
-   {
+   bool AHCALProducer::OpenConnection() {
       if (_redirectedInputFileName.empty()) {
          struct sockaddr_in dstAddr;
          memset(&dstAddr, 0, sizeof(dstAddr));
@@ -282,8 +256,7 @@ namespace eudaq {
                deqEvent.front()->SetBORE();
                deqEvent.front()->SetTag("FirstROCStartTS", dynamic_cast<ScReader*>(_reader)->getRunTimesStatistics().first_TS);
             }
-            if ((minimumsize == 0) && (deqEvent.size() == 1))
-               deqEvent.front()->SetEORE();
+            if ((minimumsize == 0) && (deqEvent.size() == 1)) deqEvent.front()->SetEORE();
 
 //            if (deqEvent.front()->GetEventN() != (_eventNo + 1)) {
 //               std::cout << "SENDEVENTS: Run " + to_string(_runNo) + " Event " + to_string(deqEvent.front()->GetEventN()) + " not in sequence. Expected " + to_string(_eventNo + 1) << std::endl;
@@ -359,13 +332,11 @@ namespace eudaq {
          //std::cout << "DEBUG: producer Exec(): read" << size << " bytes" << std::endl;
          if (size > 0) {
             //_last_readout_time = std::time(NULL);
-            if (_writeRaw && _rawFile.is_open())
-               _rawFile.write(buf, size);
+            if (_writeRaw && _rawFile.is_open()) _rawFile.write(buf, size);
             // C array to vector
             copy(buf, buf + size, back_inserter(bufRead));
             //bufRead.insert(bufRead.end(), buf, buf + size);
-            if (_reader)
-               _reader->Read(bufRead, deqEvent);
+            if (_reader) _reader->Read(bufRead, deqEvent);
             // send events : remain the last event
             sendallevents(deqEvent, 1);
             continue;
@@ -373,8 +344,7 @@ namespace eudaq {
 
          if (size == -1 || size == 0) {
             if (size == -1)
-               std::cout << "Error on read: " << errno
-                     << " Disconnect and going to the waiting mode." << endl;
+               std::cout << "Error on read: " << errno << " Disconnect and going to the waiting mode." << endl;
             else {
                std::cout << "Socket disconnected. going to the waiting mode." << endl;
             }
@@ -413,33 +383,27 @@ namespace eudaq {
       return _AHCALBXIDWidth;
    }
 
-   int AHCALProducer::getInsertDummyPackets() const
-   {
+   int AHCALProducer::getInsertDummyPackets() const {
       return _InsertDummyPackets;
    }
 
-   int AHCALProducer::getDebugKeepBuffered() const
-   {
+   int AHCALProducer::getDebugKeepBuffered() const {
       return _DebugKeepBuffered;
    }
 
-   int AHCALProducer::getGenerateTriggerIDFrom() const
-   {
+   int AHCALProducer::getGenerateTriggerIDFrom() const {
       return _GenerateTriggerIDFrom;
    }
 
-   AHCALProducer::EventNumbering AHCALProducer::getEventNumberingPreference() const
-   {
+   AHCALProducer::EventNumbering AHCALProducer::getEventNumberingPreference() const {
       return _eventNumberingPreference;
    }
 
-   int AHCALProducer::getColoredTerminalMessages() const
-   {
+   int AHCALProducer::getColoredTerminalMessages() const {
       return _ColoredTerminalMessages;
    }
 
-   int AHCALProducer::getIgnoreLdaTimestamps() const
-   {
+   int AHCALProducer::getIgnoreLdaTimestamps() const {
       return _IgnoreLdaTimestamps;
    }
 
