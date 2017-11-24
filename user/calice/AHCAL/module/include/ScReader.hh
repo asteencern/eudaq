@@ -16,7 +16,8 @@ namespace eudaq {
          virtual void OnConfigLED(std::string _fname) override; //chose configuration file for LED runs
          virtual void buildEvents(std::deque<eudaq::EventUP> &EventQueue, bool dumpAll) override;
 
-         virtual std::deque<eudaq::RawEvent *> NewEvent_createRawDataEvent(std::deque<eudaq::RawEvent *> deqEvent, bool tempcome, int LdaRawcycle, bool newForced);
+         virtual std::deque<eudaq::RawEvent *> NewEvent_createRawDataEvent(std::deque<eudaq::RawEvent *> deqEvent, bool tempcome, int LdaRawcycle,
+               bool newForced);
          virtual void readTemperature(std::deque<char>& buf);
 
          void appendOtherInfo(eudaq::RawEvent * ev);
@@ -64,6 +65,8 @@ namespace eudaq {
          };
 
          const ScReader::RunTimeStatistics& getRunTimesStatistics() const;
+         unsigned int getCycleNo() const;
+         unsigned int getTrigId() const;
 
       private:
          enum class UnfinishedPacketStates {
@@ -76,9 +79,7 @@ namespace eudaq {
             e_sizeLdaHeader = 10 // 8bytes + 0xcdcd
          };
          enum BufferProcessigExceptions {
-            ERR_INCOMPLETE_INFO_CYCLE,
-            OK_ALL_READ,
-            OK_NEED_MORE_DATA
+            ERR_INCOMPLETE_INFO_CYCLE, OK_ALL_READ, OK_NEED_MORE_DATA
          };
 
       private:
@@ -122,7 +123,7 @@ namespace eudaq {
 
          int _lastBuiltEventNr;            //last event number for keeping track of missed events in the stream (either ROC, trigger number or arbitrary number)
 
-         std::map<int, LDATimeData> _LDATimestampData;          //maps READOUTCYCLE to LDA timestamps for that cycle (comes asynchronously with the data and tends to arrive before the ASIC packets)
+         std::map<int, LDATimeData> _LDATimestampData; //maps READOUTCYCLE to LDA timestamps for that cycle (comes asynchronously with the data and tends to arrive before the ASIC packets)
 
          std::map<int, std::vector<std::vector<int> > > _LDAAsicData;              //maps readoutcycle to vector of "infodata"
 

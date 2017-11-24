@@ -26,11 +26,11 @@ xterm -sb -sl 100000 -geometry 160x30 -T "Hodoscope Data collector" -e 'bin/euCl
 xterm -sb -sl 1000000 -geometry 160x30 -T "Hodoscope" -e 'bin/euCliProducer -n CaliceEasirocProducer -t hodoscope1 -r tcp://$HOSTIP:$RCPOR|tee -a logs/hodoscope1.log && read || read'&
 xterm -sb -sl 1000000 -geometry 160x30 -T "Hodoscope 2" -e 'bin/euCliProducer -n CaliceEasirocProducer -t hodoscope2 -r tcp://$HOSTIP:$RCPOR|tee -a logs/hodoscope2.log && read || read'&
 # sleep 1
-xterm -sb -sl 1000000 -geometry 160x30 -T "AHCAL" -e 'bin/euCliProducer -n AHCALProducer -t Calice1-r tcp://$HOSTIP:$RCPOR|tee -a logs/ahcal.log && read || read'&
+xterm -sb -sl 1000000 -geometry 160x30 -T "AHCAL" -e 'bin/euCliProducer -n AHCALProducer -t Calice1 -r tcp://$HOSTIP:$RCPOR|tee -a logs/ahcal.log && read || read'&
 
 #################  Online Monitor #################
 #echo "starting online monitor"
-xterm -sb -sl 100000  -T "Online monitor" -e 'bin/StdEventMonitor -c conf/onlinemonitor.conf --reset -r tcp://$HOSTIP:$RCPORT -a tcp://45002 ; read' &
+xterm -sb -sl 100000  -T "Online monitor" -e 'bin/StdEventMonitor -c conf/onlinemonitor.conf --monitor_name StdEventMonitor --reset -r tcp://$HOSTIP:$RCPORT ; read' &
 # echo "online monitor started"
 exit
 

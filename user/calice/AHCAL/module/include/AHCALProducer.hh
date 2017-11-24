@@ -41,7 +41,6 @@ namespace eudaq {
 
    class AHCALProducer: public eudaq::Producer {
       public:
-
          enum class EventBuildingMode {
             ROC, TRIGGERID, BUILD_BXID_ALL, BUILD_BXID_VALIDATED
          };
@@ -81,7 +80,9 @@ namespace eudaq {
          int getGenerateTriggerIDFrom() const;
          int getColoredTerminalMessages() const;
          int getIgnoreLdaTimestamps() const;
+      int getMaxTrigidSkip() const;
 
+         static const uint32_t m_id_factory = eudaq::cstr2hash("AHCALProducer");
       private:
          AHCALProducer::EventBuildingMode _eventBuildingMode;
          AHCALProducer::EventNumbering _eventNumberingPreference;
@@ -97,7 +98,12 @@ namespace eudaq {
          int _StartWaitSeconds; //wait a fixed amount of seconds, befor the DoStartRun is executed
          int _runNo;
          int _eventNo; //last sent event - for checking of correct event numbers sequence during sending events
+#ifdef _WIN32
+		 SOCKET _fd;
+#else
          int _fd;
+#endif
+      int _maxTrigidSkip;
 
          std::mutex _mufd;
 

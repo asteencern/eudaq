@@ -16,15 +16,9 @@ using namespace std;
 namespace eudaq {
 
    ScReader::ScReader(AHCALProducer *r) :
-         AHCALReader(r),
-               _runNo(-1),
-               _buffer_inside_acquisition(false),
-               _lastBuiltEventNr(0),
-               _cycleNo(0),
-               //               _tempmode(false),
-               _trigID(0),
-               _unfinishedPacketState(UnfinishedPacketStates::DONE),
-               length(0) {
+         AHCALReader(r), _runNo(-1), _buffer_inside_acquisition(false), _lastBuiltEventNr(0), _cycleNo(0),
+         //               _tempmode(false),
+         _trigID(0), _unfinishedPacketState(UnfinishedPacketStates::DONE), length(0) {
    }
 
    ScReader::~ScReader() {
@@ -45,7 +39,7 @@ namespace eudaq {
             _lastBuiltEventNr = _producer->getGenerateTriggerIDFrom() - 1;
             break;
          case AHCALProducer::EventBuildingMode::ROC:
-            default:
+         default:
             _lastBuiltEventNr = -1;
             break;
       }
@@ -89,15 +83,12 @@ namespace eudaq {
             _producer->CloseConnection();
             std::cout << " End CloseConnection OnConfigLED " << std::endl;
          } else {
-            std::cout << " connexion failed, try configurating again"
-                  << std::endl;
+            std::cout << " connexion failed, try configurating again" << std::endl;
          }
       }
-      std::cout << " ###################################################  "
-            << std::endl;
+      std::cout << " ###################################################  " << std::endl;
       std::cout << " SYSTEM READY " << std::endl;
-      std::cout << " ###################################################  "
-            << std::endl;
+      std::cout << " ###################################################  " << std::endl;
 
    }
 
@@ -112,14 +103,11 @@ namespace eudaq {
       std::cout << "DEBUG: MAP sizes: " << _LDAAsicData.size() << "\t" << _LDATimestampData.size() << "\t last ROC: ";
       if (_LDAAsicData.crbegin() != _LDAAsicData.crend()) {
          std::cout << _LDAAsicData.crbegin()->first;
-      }
-      else
-         std::cout << "N/A";
+      } else std::cout << "N/A";
       std::cout << "\t";
       if (_LDATimestampData.crbegin() != _LDATimestampData.crend())
          std::cout << _LDATimestampData.rbegin()->first;
-      else
-         std::cout << "N/A";
+      else std::cout << "N/A";
       std::cout << std::endl;
 
       printLDAROCInfo(std::cout);
@@ -175,11 +163,9 @@ namespace eudaq {
                }
 
                // read LABVIEW SlowControl Information (alway present)
-               if ((_unfinishedPacketState == UnfinishedPacketStates::SLOWCONTROL)
-                     || ((unsigned char) buf[0] == magic_sc[0])) {
+               if ((_unfinishedPacketState == UnfinishedPacketStates::SLOWCONTROL) || ((unsigned char) buf[0] == magic_sc[0])) {
                   if (buf.size() < 2) throw BufferProcessigExceptions::ERR_INCOMPLETE_INFO_CYCLE;
-                  if ((_unfinishedPacketState == UnfinishedPacketStates::SLOWCONTROL)
-                        || ((unsigned char) buf[1] == magic_sc[1])) {
+                  if ((_unfinishedPacketState == UnfinishedPacketStates::SLOWCONTROL) || ((unsigned char) buf[1] == magic_sc[1])) {
                      int ibuf = 2;
                      if (_unfinishedPacketState == UnfinishedPacketStates::SLOWCONTROL) ibuf = 0;
                      _unfinishedPacketState = UnfinishedPacketStates::SLOWCONTROL;
@@ -206,8 +192,8 @@ namespace eudaq {
                      buf.erase(buf.begin(), buf.begin() + ibuf - 1);            //Slowcontrol data saved, therefore can be deleted from buffer.
                      continue;
                   } else {  //unknown data
-                     std::cout << "ERROR: unknown data (Slowcontrol) " << to_hex(buf[0]) << " " << to_hex(buf[1])
-                           << "\tstate:" << ((int) _unfinishedPacketState) << std::endl;
+                     std::cout << "ERROR: unknown data (Slowcontrol) " << to_hex(buf[0]) << " " << to_hex(buf[1]) << "\tstate:"
+                           << ((int) _unfinishedPacketState) << std::endl;
                      _unfinishedPacketState = UnfinishedPacketStates::DONE;
                   }
                }
@@ -366,12 +352,12 @@ namespace eudaq {
             deque<char>::iterator it = buf.begin() + e_sizeLdaHeader;
 
             // ASIC DATA 0x4341 0x4148
-            if ((it[0] == C_PKTHDR_ASICDATA[0]) && (it[1] == C_PKTHDR_ASICDATA[1])
-                  && (it[2] == C_PKTHDR_ASICDATA[2]) && (it[3] == C_PKTHDR_ASICDATA[3])) {
+            if ((it[0] == C_PKTHDR_ASICDATA[0]) && (it[1] == C_PKTHDR_ASICDATA[1]) && (it[2] == C_PKTHDR_ASICDATA[2]) && (it[3] == C_PKTHDR_ASICDATA[3])) {
                //std::cout << "DEBUG: Analyzing AHCAL data, ROC " << LDA_Header_cycle << std::endl;
                readAHCALData(buf, _LDAAsicData);
             } else {
-               cout << "ScReader: header invalid. Received" << to_hex(it[0]) << " " << to_hex(it[1]) << " " << to_hex(it[2]) << " " << to_hex(it[3]) << " " << endl;
+               cout << "ScReader: header invalid. Received" << to_hex(it[0]) << " " << to_hex(it[1]) << " " << to_hex(it[2]) << " " << to_hex(it[3]) << " "
+                     << endl;
                buf.pop_front();
             }
 
@@ -389,8 +375,7 @@ namespace eudaq {
             // remove used buffer
 //            buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
          }
-      }
-      catch (BufferProcessigExceptions &e) {
+      } catch (BufferProcessigExceptions &e) {
 //all data in buffer processed (or not enough data in the buffer)
 //std::cout << "DEBUG: MAP sizes: " << _LDAAsicData.size() << "\t" << _LDATimestampData.size();
 //std::cout << "\t last ROC: " << _LDAAsicData.rbegin()->first << "\t" << _LDATimestampData.rbegin()->first << std::endl;
@@ -405,27 +390,23 @@ namespace eudaq {
       } // throw if data short
    }
 
-  std::deque<eudaq::RawEvent *> ScReader::NewEvent_createRawDataEvent(std::deque<eudaq::RawEvent *> deqEvent, bool TempFlag, int LdaRawcycle, bool newForced)
-         {
-      if (deqEvent.size() == 0
-            || (!TempFlag && ((_cycleNo + 256) % 256) != LdaRawcycle)
-            || newForced) {
+   std::deque<eudaq::RawEvent *> ScReader::NewEvent_createRawDataEvent(std::deque<eudaq::RawEvent *> deqEvent, bool TempFlag, int LdaRawcycle, bool newForced) {
+      if (deqEvent.size() == 0 || (!TempFlag && ((_cycleNo + 256) % 256) != LdaRawcycle) || newForced) {
 // new event arrived: create RawDataEvent
          if (!newForced) _cycleNo++;
-	 eudaq::EventUP evup = eudaq::Event::MakeUnique("CaliceObject");
-	 evup->SetEventN(_trigID);
-	 evup->SetDeviceN(0);
-	 evup->SetRunN(_runNo);
-	 
-	 eudaq::RawEvent *nev = dynamic_cast<RawEvent*>(evup.get());
+         eudaq::EventUP evup = eudaq::Event::MakeUnique("CaliceObject");
+         evup->SetEventN(_trigID);
+         evup->SetDeviceN(0);
+         evup->SetRunN(_runNo);
+
+         eudaq::RawEvent *nev = dynamic_cast<RawEvent*>(evup.get());
          string s = "EUDAQDataScCAL";
          nev->AddBlock(0, s.c_str(), s.length());
          s = "i:CycleNr,i:BunchXID,i:EvtNr,i:ChipID,i:NChannels,i:TDC14bit[NC],i:ADC14bit[NC]";
          nev->AddBlock(1, s.c_str(), s.length());
          unsigned int times[1];
-         struct timeval tv;
-         ::gettimeofday(&tv, NULL);
-         times[0] = tv.tv_sec;
+         auto since_epoch = std::chrono::system_clock::now().time_since_epoch();
+         times[0] = std::chrono::duration_cast<std::chrono::seconds>(since_epoch).count();
          nev->AddBlock(2, times, sizeof(times));
          nev->AddBlock(3, vector<int>()); // dummy block to be filled later with slowcontrol files
          nev->AddBlock(4, vector<int>()); // dummy block to be filled later with LED information (only if LED run)
@@ -497,9 +478,8 @@ namespace eudaq {
       s = "i:CycleNr,i:BunchXID,i:EvtNr,i:ChipID,i:NChannels,i:TDC14bit[NC],i:ADC14bit[NC]";
       ev->AddBlock(1, s.c_str(), s.length());
       unsigned int times[1];
-      struct timeval tv;
-      ::gettimeofday(&tv, NULL);
-      times[0] = tv.tv_sec;
+      auto since_epoch = std::chrono::system_clock::now().time_since_epoch();
+      times[0] = std::chrono::duration_cast<std::chrono::seconds>(since_epoch).count();
       ev->AddBlock(2, times, sizeof(times));
       ev->AddBlock(3, vector<int>()); // dummy block to be filled later with slowcontrol files
       ev->AddBlock(4, vector<int>()); // dummy block to be filled later with LED information (only if LED run)
@@ -537,7 +517,8 @@ namespace eudaq {
             for (int i = 0; i < _LDATimestampData[roc].TS_Triggers.size(); ++i) {
                if (!startTS) {
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
-                  std::cout << "ERROR EB: Start timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP=" << _LDATimestampData[roc].TS_Stop << std::endl;
+                  std::cout << "ERROR EB: Start timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP="
+                        << _LDATimestampData[roc].TS_Stop << std::endl;
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
                   break;
                }
@@ -556,8 +537,7 @@ namespace eudaq {
                //std::cout << "Trigger info BXID=" << bxid << "\tTrigID=" << triggerId << std::endl;
             }
             _LDATimestampData.erase(roc);
-         }
-         else {
+         } else {
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
             std::cout << "ERROR EB: matching LDA timestamp information not found for ROC " << roc << std::endl;
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
@@ -568,14 +548,20 @@ namespace eudaq {
             //std::cout << "bxid: " << sameBxidPackets.first << "\tsize: " << sameBxidPackets.second.size() << std::endl;
             int bxid = sameBxidPackets.first;
 
+            if (triggerBxids.count(bxid) > 1) {
+               if (_producer->getColoredTerminalMessages()) std::cout << "\033[35;1m";
+               std::cout << "Warning EB: More triggers (" << triggerBxids.count(bxid) << ") within BXID=" << bxid << " ROC=" << roc << std::endl;
+               if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+            }
             //there might be more external triggerIDs within one BXID, therefore we iterate over everything within the bxid
-            for (std::multimap<int, std::tuple<int, uint64_t> >::iterator trigIt = triggerBxids.find(bxid); trigIt != triggerBxids.end(); trigIt = triggerBxids.find(bxid)) {
+            for (std::multimap<int, std::tuple<int, uint64_t> >::iterator trigIt = triggerBxids.find(bxid); trigIt != triggerBxids.end();
+                  trigIt = triggerBxids.find(bxid)) {
                _RunTimesStatistics.builtBXIDs++;
 
                //trigger ID within the ROC is found at this place
                int rawTrigId = std::get<0>(trigIt->second);
-               while ((++_lastBuiltEventNr < (rawTrigId - _producer->getLdaTrigidOffset()))
-                     && (_producer->getInsertDummyPackets())) {
+               uint64_t trigTS = std::get<1>(trigIt->second);
+               while ((++_lastBuiltEventNr < (rawTrigId - _producer->getLdaTrigidOffset())) && (_producer->getInsertDummyPackets())) {
                   //std::cout << "WARNING EB: inserting a dummy trigger: " << _lastBuiltEventNr << ", because " << _LDATimestampData[roc].TriggerIDs[i] << " is next" << std::endl;
                   insertDummyEvent(EventQueue, -1, _lastBuiltEventNr, false);
                }
@@ -584,12 +570,14 @@ namespace eudaq {
                eudaq::RawEvent *nev_raw = dynamic_cast<RawEvent*>(nev.get());
                prepareEudaqRawPacket(nev_raw);
                nev->SetTag("ROC", roc);
+               nev->SetTag("BXID", bxid);
                nev->SetTag("ROCStartTS", startTS);
+               nev->SetTag("TrigBxidTdc", (int) ((trigTS - startTS - _producer->getAhcalbxid0Offset()) % _producer->getAhcalbxidWidth()));
                nev->SetTriggerN(rawTrigId - _producer->getLdaTrigidOffset());
                if (startTS && (!_producer->getIgnoreLdaTimestamps())) {
-		 uint64_t ts_beg = startTS + _producer->getAhcalbxid0Offset() + bxid * _producer->getAhcalbxidWidth() - 1;
-		 uint64_t ts_end = startTS + _producer->getAhcalbxid0Offset() + (bxid + 1) * _producer->getAhcalbxidWidth() + 1;
-		 nev->SetTimestamp(ts_beg, ts_end, true);//false?
+                  uint64_t ts_beg = startTS + _producer->getAhcalbxid0Offset() + bxid * _producer->getAhcalbxidWidth() - 1;
+                  uint64_t ts_end = startTS + _producer->getAhcalbxid0Offset() + (bxid + 1) * _producer->getAhcalbxidWidth() + 1;
+                  nev->SetTimestamp(ts_beg, ts_end, true);               //false?
                }
                std::vector<uint32_t> cycledata;
                cycledata.push_back((uint32_t) (startTS));
@@ -600,23 +588,22 @@ namespace eudaq {
                cycledata.push_back((uint32_t) (std::get<1>(trigIt->second) >> 32));
                nev_raw->AppendBlock(6, cycledata);
 
-
                switch (_producer->getEventNumberingPreference()) {
                   case AHCALProducer::EventNumbering::TRIGGERID:
                      nev->SetFlagBit(eudaq::Event::Flags::FLAG_TRIG);
                      nev->ClearFlagBit(eudaq::Event::Flags::FLAG_TIME);
                      break;
                   case AHCALProducer::EventNumbering::TIMESTAMP:
-                     default:
+                  default:
                      nev->SetFlagBit(eudaq::Event::Flags::FLAG_TIME);
                      nev->ClearFlagBit(eudaq::Event::Flags::FLAG_TRIG);
                      break;
                }
+
                for (auto & minipacket : sameBxidPackets.second) {
                   if (minipacket.size()) {
                      if (triggerBxids.count(bxid) > 1) {
-                        std::cout <<
-                              nev_raw->AddBlock(nev_raw->NumBlocks(), minipacket);
+                        nev_raw->AddBlock(nev_raw->NumBlocks(), minipacket);
                      } else {
                         nev_raw->AddBlock(nev_raw->NumBlocks(), std::move(minipacket));
                      }
@@ -662,7 +649,8 @@ namespace eudaq {
             stopTS = _LDATimestampData[roc].TS_Stop;
             if (!_LDATimestampData[roc].TS_Start) {
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
-               std::cout << "ERROR: Start timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP=" << _LDATimestampData[roc].TS_Stop << std::endl;
+               std::cout << "ERROR: Start timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP="
+                     << _LDATimestampData[roc].TS_Stop << std::endl;
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
             }
             if (_LDATimestampData[roc].TS_Stop - _LDATimestampData[roc].TS_Start > 100 * C_MILLISECOND_TICS) {
@@ -672,9 +660,11 @@ namespace eudaq {
             }
             _LDATimestampData.erase(roc);
          } else {
-            if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
-            std::cout << "ERROR: matching LDA timestamp information not found for ROC " << roc << std::endl;
-            if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+            if (!_producer->getIgnoreLdaTimestamps()) {
+               if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
+               std::cout << "ERROR: matching LDA timestamp information not found for ROC " << roc << std::endl;
+               if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+            }
          }
          //----------------------------------------------------------
 
@@ -687,6 +677,7 @@ namespace eudaq {
             eudaq::RawEvent *nev_raw = dynamic_cast<RawEvent*>(nev.get());
             prepareEudaqRawPacket(nev_raw);
             nev->SetTag("ROC", roc);
+            nev->SetTag("BXID", bxid);
             if (_LDATimestampData.count(roc)) {
                nev->SetTag("ROCStartTS", startTS);
                std::vector<uint32_t> cycledata;
@@ -709,7 +700,7 @@ namespace eudaq {
             if (startTS && (!_producer->getIgnoreLdaTimestamps())) {
                uint64_t ts_beg = startTS + _producer->getAhcalbxid0Offset() + bxid * _producer->getAhcalbxidWidth() - 1;
                uint64_t ts_end = startTS + _producer->getAhcalbxid0Offset() + (bxid + 1) * _producer->getAhcalbxidWidth() + 1;
-	       nev->SetTimestamp(ts_beg, ts_end, false);
+               nev->SetTimestamp(ts_beg, ts_end, false);
             }
             for (auto & minipacket : sameBxidPackets.second) {
                if (minipacket.size()) {
@@ -753,7 +744,8 @@ namespace eudaq {
                nev->SetTimestamp(_LDATimestampData[roc].TS_Start, _LDATimestampData[roc].TS_Stop, true);
             } else {
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
-               std::cout << "ERROR EB: one of the timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP=" << _LDATimestampData[roc].TS_Stop << std::endl;
+               std::cout << "ERROR EB: one of the timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP="
+                     << _LDATimestampData[roc].TS_Stop << std::endl;
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
             }
             if (_LDATimestampData[roc].TS_Stop - _LDATimestampData[roc].TS_Start > 100 * C_MILLISECOND_TICS) {
@@ -813,10 +805,9 @@ namespace eudaq {
                }
 
                //trigger ID within the ROC is found at this place
-               while ((++_lastBuiltEventNr < (_LDATimestampData[roc].TriggerIDs[i] - _producer->getLdaTrigidOffset()))
-                     && (_producer->getInsertDummyPackets())) {
+               while ((++_lastBuiltEventNr < (_LDATimestampData[roc].TriggerIDs[i] - _producer->getLdaTrigidOffset())) && (_producer->getInsertDummyPackets())) {
                   //std::cout << "WARNING EB: inserting a dummy trigger: " << _lastBuiltEventNr << ", because " << _LDATimestampData[roc].TriggerIDs[i] << " is next" << std::endl;
-                  insertDummyEvent(EventQueue, -1, _lastBuiltEventNr, true);
+                  insertDummyEvent(EventQueue, _lastBuiltEventNr, _lastBuiltEventNr, true);
                }
                int trigid = _LDATimestampData[roc].TriggerIDs[i];
 
@@ -825,22 +816,22 @@ namespace eudaq {
                eudaq::RawEvent *nev_raw = dynamic_cast<RawEvent*>(nev.get());
                prepareEudaqRawPacket(nev_raw);
                switch (_producer->getEventNumberingPreference()) {
-	       case AHCALProducer::EventNumbering::TIMESTAMP:{
-		 nev->SetTriggerN(trigid - _producer->getLdaTrigidOffset(), false);
-		 uint64_t ts_beg = _LDATimestampData[roc].TS_Triggers[i] - _producer->getAhcalbxidWidth();
-		 uint64_t ts_end =_LDATimestampData[roc].TS_Triggers[i] + _producer->getAhcalbxidWidth();
-		 nev->SetTimestamp(ts_beg, ts_end, true);//false?
-		 break;
-	       }
-	       case AHCALProducer::EventNumbering::TRIGGERID:
-	       default:
-		 nev->SetTriggerN(trigid - _producer->getLdaTrigidOffset(), true);
-		 if (!_producer->getIgnoreLdaTimestamps()) {
-		   uint64_t ts_beg = _LDATimestampData[roc].TS_Triggers[i] - _producer->getAhcalbxidWidth();
-		   uint64_t ts_end = _LDATimestampData[roc].TS_Triggers[i] + _producer->getAhcalbxidWidth();
-		   nev->SetTimestamp(ts_beg, ts_end, false);
-		 }
-		 break;
+                  case AHCALProducer::EventNumbering::TIMESTAMP: {
+                     nev->SetTriggerN(trigid - _producer->getLdaTrigidOffset(), false);
+                     uint64_t ts_beg = _LDATimestampData[roc].TS_Triggers[i] - _producer->getAhcalbxidWidth();
+                     uint64_t ts_end = _LDATimestampData[roc].TS_Triggers[i] + _producer->getAhcalbxidWidth();
+                     nev->SetTimestamp(ts_beg, ts_end, true); //false?
+                     break;
+                  }
+                  case AHCALProducer::EventNumbering::TRIGGERID:
+                  default:
+                     nev->SetTriggerN(trigid - _producer->getLdaTrigidOffset(), true);
+                     if (!_producer->getIgnoreLdaTimestamps()) {
+                        uint64_t ts_beg = _LDATimestampData[roc].TS_Triggers[i] - _producer->getAhcalbxidWidth();
+                        uint64_t ts_end = _LDATimestampData[roc].TS_Triggers[i] + _producer->getAhcalbxidWidth();
+                        nev->SetTimestamp(ts_beg, ts_end, false);
+                     }
+                     break;
                }
                nev->SetTag("ROC", roc);
                nev->SetTag("ROCStartTS", _LDATimestampData[roc].TS_Start);
@@ -899,6 +890,7 @@ namespace eudaq {
       prepareEudaqRawPacket(nev_raw);
       if (eventNumber > 0) nev->SetEventN(eventNumber);
       if (triggerid > 0) nev->SetTriggerN(triggerid, triggeridFlag);
+      nev->SetTag("Dummy", 1);
       EventQueue.push_back(std::move(nev));
    }
 
@@ -917,11 +909,11 @@ namespace eudaq {
       unsigned int LDA_Header_cycle = (unsigned char) buf[4]; //from LDA packet header - 8 bits only!
       int8_t cycle_difference = LDA_Header_cycle - (_cycleNo & 0xFF);
       if (cycle_difference == -1) {      //received a data from previous ROC. should not happen
-         cout << "Received data from previus ROC in run" << _runNo << ". Global ROC="
-               << _cycleNo << " (" << _cycleNo % 256 << " modulo 256), received=" << LDA_Header_cycle << endl;
+         cout << "Received data from previus ROC in run" << _runNo << ". Global ROC=" << _cycleNo << " (" << _cycleNo % 256 << " modulo 256), received="
+               << LDA_Header_cycle << endl;
          EUDAQ_EXTRA(
-               "Received data from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo)
-                     + " (" + to_string(_cycleNo % 256) + " modulo 256), received=" + to_string(LDA_Header_cycle));
+               "Received data from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo) + " (" + to_string(_cycleNo % 256)
+                     + " modulo 256), received=" + to_string(LDA_Header_cycle));
          _cycleNo--;
       }
 
@@ -933,8 +925,7 @@ namespace eudaq {
 //really bad data corruption
          cout << "ERROR: Jump in run " << _runNo << " in data readoutcycle by " << to_string((int) cycle_difference) << "in ROC " << _cycleNo << endl;
          EUDAQ_ERROR("Jump in run " + to_string(_runNo) + "in data readoutcycle by " + to_string((int )cycle_difference) + "in ROC " + to_string(_cycleNo));
-         if (cycle_difference < 20)
-            _cycleNo += cycle_difference; //we compensate only small difference
+         if (cycle_difference < 20) _cycleNo += cycle_difference; //we compensate only small difference
       }
 
 //data from the readoutcycle.
@@ -945,8 +936,9 @@ namespace eudaq {
 // footer check: ABAB
       if ((unsigned char) it[length - 2] != 0xab || (unsigned char) it[length - 1] != 0xab) {
          cout << "Footer abab invalid:" << (unsigned int) (unsigned char) it[length - 2] << " " << (unsigned int) (unsigned char) it[length - 1] << endl;
-         EUDAQ_WARN("Footer abab invalid:" + to_string((unsigned int )(unsigned char )it[length - 2]) + " " +
-               to_string((unsigned int )(unsigned char )it[length - 1]));
+         EUDAQ_WARN(
+               "Footer abab invalid:" + to_string((unsigned int )(unsigned char )it[length - 2]) + " "
+                     + to_string((unsigned int )(unsigned char )it[length - 1]));
       }
       if ((length - 12) % 146) {
 //we check, that the data packets from DIF have proper sizes. The RAW packet size can be checked
@@ -971,8 +963,7 @@ namespace eudaq {
 
          for (int np = 0; np < NChannel; np++) {
             unsigned short tdc_value = (unsigned char) it[np * 2] + ((unsigned char) it[np * 2 + 1] << 8);
-            unsigned short adc_value =
-                  (unsigned char) it[np * 2 + NChannel * 2] + ((unsigned char) it[np * 2 + 1 + NChannel * 2] << 8);
+            unsigned short adc_value = (unsigned char) it[np * 2 + NChannel * 2] + ((unsigned char) it[np * 2 + 1 + NChannel * 2] << 8);
             tdc.push_back(tdc_value);
             adc.push_back(adc_value);
          }
@@ -1037,11 +1028,11 @@ namespace eudaq {
          int8_t cycle_difference = LDA_Header_cycle - (LDA_cycle & 0xFF);
 
          if (cycle_difference == -1) {      //received a data from previous ROC. should not happen
-            cout << "WARNING: Received a timestamp from previus ROC in run" << _runNo << ". Global ROC="
-                  << _cycleNo << " (" << _cycleNo % 256 << " modulo 256), received=" << (int) LDA_Header_cycle << endl;
+            cout << "WARNING: Received a timestamp from previus ROC in run" << _runNo << ". Global ROC=" << _cycleNo << " (" << _cycleNo % 256
+                  << " modulo 256), received=" << (int) LDA_Header_cycle << endl;
             EUDAQ_EXTRA(
-                  "Received a timestamp from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo)
-                        + " (" + to_string(_cycleNo % 256) + " modulo 256), received=" + to_string((int )LDA_Header_cycle));
+                  "Received a timestamp from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo) + " (" + to_string(_cycleNo % 256)
+                        + " modulo 256), received=" + to_string((int )LDA_Header_cycle));
             LDA_cycle--;
          }
 
@@ -1054,19 +1045,16 @@ namespace eudaq {
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
             cout << "ERROR: Jump in run " << _runNo << " in TS readoutcycle by " << to_string((int) cycle_difference) << " in ROC " << LDA_cycle << endl;
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
-            EUDAQ_ERROR("ERROR: Jump in run " + to_string(_runNo) + "in TS readoutcycle by " + to_string((int )cycle_difference) + "in ROC " + to_string(LDA_cycle));
-            if (cycle_difference < 20)
-               LDA_cycle += cycle_difference; //we compensate only small difference
+            EUDAQ_ERROR(
+                  "ERROR: Jump in run " + to_string(_runNo) + "in TS readoutcycle by " + to_string((int )cycle_difference) + "in ROC " + to_string(LDA_cycle));
+            if (cycle_difference < 20) LDA_cycle += cycle_difference; //we compensate only small difference
          }
          //std::cout << "DEBUG: processing TS from LDA cycle after correction " << LDA_cycle << std::endl;
          LDATimeData & currentROCData = LDATimestamps.insert( { LDA_cycle, LDATimeData() }).first->second;         //uses the existing one or creates new
 
-         uint64_t timestamp = ((uint64_t) ((unsigned char) buf[18]) +
-               (((uint64_t) ((unsigned char) buf[19])) << 8) +
-               (((uint64_t) ((unsigned char) buf[20])) << 16) +
-               (((uint64_t) ((unsigned char) buf[21])) << 24) +
-               (((uint64_t) ((unsigned char) buf[22])) << 32) +
-               (((uint64_t) ((unsigned char) buf[23])) << 40));
+         uint64_t timestamp = ((uint64_t) ((unsigned char) buf[18]) + (((uint64_t) ((unsigned char) buf[19])) << 8)
+               + (((uint64_t) ((unsigned char) buf[20])) << 16) + (((uint64_t) ((unsigned char) buf[21])) << 24)
+               + (((uint64_t) ((unsigned char) buf[22])) << 32) + (((uint64_t) ((unsigned char) buf[23])) << 40));
 
          if (TStype == C_TSTYPE_START_ACQ) {
             if (_buffer_inside_acquisition) {
@@ -1123,26 +1111,29 @@ namespace eudaq {
 
             if (trigIDdifference != 1) { //serious error, we missed a trigger ID, we got it more time, or the data is corrupted
                //int cycle_difference = static_cast<int>((_trigID + 1) & 0xFFFF) - static_cast<int>(rawTrigID);
-               if ((trigIDdifference > 1) && (trigIDdifference < 100)) {
+               if ((trigIDdifference > 1) && (trigIDdifference < _producer->getMaxTrigidSkip())) {
                   //we do accept small jumps forward
                   _trigID += trigIDdifference;
                   _RunTimesStatistics.triggers_lost += trigIDdifference - 1;
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[35;1m";
-                  cout << "WARNING: " << (trigIDdifference - 1) << " Skipped TriggerIDs detected in run " << _runNo << ". Incrementing counter. ROC=" << _cycleNo << ", TrigID=" << _trigID
-                        << endl;
+                  cout << "WARNING: " << (trigIDdifference - 1) << " Skipped TriggerIDs detected in run " << _runNo << ". Incrementing counter. ROC="
+                        << _cycleNo << ", TrigID=" << _trigID << endl;
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
-                  EUDAQ_WARN(to_string(trigIDdifference - 1) + "Skipped TriggerID detected in run " + to_string(_runNo) +
-                        ". Incrementing counter. ROC=" + to_string(_cycleNo) + ", TrigID=" + to_string(_trigID));
+                  EUDAQ_WARN(
+                        to_string(trigIDdifference - 1) + "Skipped TriggerID detected in run " + to_string(_runNo) + ". Incrementing counter. ROC="
+                              + to_string(_cycleNo) + ", TrigID=" + to_string(_trigID));
                }
 
                //TODO fix the case, when the trigger comes as the very first event. Not the case for TLU - it starts sending triggers later
-               if ((trigIDdifference < 1) || (trigIDdifference >= 100)) {
+               if ((trigIDdifference < 1) || (trigIDdifference >= _producer->getMaxTrigidSkip())) {
                   //too big difference to be compensated. Dropping this packet
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
-                  cout << "Unexpected TriggerID in run " << _runNo << ". ROC=" << _cycleNo << ", Expected TrigID=" << (_trigID + 1) << ", received:" << rawTrigID << ". SKipping" << endl;
+                  cout << "Unexpected TriggerID in run " << _runNo << ". ROC=" << _cycleNo << ", Expected TrigID=" << (_trigID + 1) << ", received:"
+                        << rawTrigID << ". SKipping" << endl;
                   if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
-                  EUDAQ_ERROR("Unexpected TriggerID in run " + to_string(_runNo) + ". ROC=" + to_string(_cycleNo) + ", Expected TrigID=" +
-                        to_string(_trigID + 1) + ", received:" + to_string(rawTrigID) + ". SKipping");
+                  EUDAQ_ERROR(
+                        "Unexpected TriggerID in run " + to_string(_runNo) + ". ROC=" + to_string(_cycleNo) + ", Expected TrigID=" + to_string(_trigID + 1)
+                              + ", received:" + to_string(rawTrigID) + ". SKipping");
                   buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
                   return;
                }
@@ -1237,8 +1228,8 @@ namespace eudaq {
       triggers_in_cycle_histogram.clear();
    }
    void ScReader::RunTimeStatistics::append(const RunTimeStatistics& otherStats) {
-      last_TS = std::max(last_TS, otherStats.last_TS);
-      first_TS = std::min(first_TS, otherStats.first_TS);
+      last_TS = (std::max)(last_TS, otherStats.last_TS); // putting std::max into parenthesis due to windows macros. TODO check if works under linux
+      first_TS = (std::min)(first_TS, otherStats.first_TS); // putting std::max into parenthesis due to windows macros. TODO check if works under linux
       ontime += otherStats.ontime;
       offtime += otherStats.offtime;
       cycles += otherStats.cycles;
@@ -1264,12 +1255,12 @@ namespace eudaq {
       out << "Average processing time (including temperature)" << (25E-6 * offtime / cycles) << " ms" << std::endl;
       out << "DAQ Speed: " << 1.0 * cycles / ((25E-9) * (last_TS - first_TS)) << " (ROC/s)" << std::endl;
       out << "DAQ Speed: " << 1.0 * triggers_inside_roc / ((25E-9) * (last_TS - first_TS)) << " (Triggers/s)" << std::endl;
-      out << "Triggers inside acquisition: " << triggers_inside_roc << " ( " <<
-            (100.0 * triggers_inside_roc / (triggers_inside_roc + triggers_outside_roc + triggers_lost)) << " % of all triggers)" << std::endl;
-      out << "Triggers outside acquisition: " << triggers_outside_roc << " ( " <<
-            (100.0 * triggers_outside_roc / (triggers_inside_roc + triggers_outside_roc + triggers_lost)) << " % of all triggers)" << std::endl;
-      out << "Lost triggers (data loss): " << triggers_lost << " ( " <<
-            (100.0 * triggers_lost / (triggers_inside_roc + triggers_outside_roc + triggers_lost)) << " % of all triggers)" << std::endl;
+      out << "Triggers inside acquisition: " << triggers_inside_roc << " ( "
+            << (100.0 * triggers_inside_roc / (triggers_inside_roc + triggers_outside_roc + triggers_lost)) << " % of all triggers)" << std::endl;
+      out << "Triggers outside acquisition: " << triggers_outside_roc << " ( "
+            << (100.0 * triggers_outside_roc / (triggers_inside_roc + triggers_outside_roc + triggers_lost)) << " % of all triggers)" << std::endl;
+      out << "Lost triggers (data loss): " << triggers_lost << " ( " << (100.0 * triggers_lost / (triggers_inside_roc + triggers_outside_roc + triggers_lost))
+            << " % of all triggers)" << std::endl;
       out << "Built BXIDs: " << builtBXIDs << std::endl;
       out << "Total triggers (including missed): " << triggers_lost + triggers_inside_roc + triggers_outside_roc << std::endl;
       out << "Trigger distribution per Acquisition cycle:" << std::endl;
@@ -1294,7 +1285,14 @@ namespace eudaq {
    }
 }
 
-const ScReader::RunTimeStatistics& ScReader::getRunTimesStatistics() const
-{
+const ScReader::RunTimeStatistics& ScReader::getRunTimesStatistics() const {
    return _RunTimesStatistics;
+}
+
+unsigned int ScReader::getCycleNo() const {
+   return _cycleNo;
+}
+
+unsigned int ScReader::getTrigId() const {
+   return _trigID;
 }
