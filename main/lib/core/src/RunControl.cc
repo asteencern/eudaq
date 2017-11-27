@@ -191,7 +191,7 @@ namespace eudaq {
    }
 
    void RunControl::StopRun() {
-      EUDAQ_INFO("Processing StartRun command for RUN #" + std::to_string(m_run_n));
+      EUDAQ_INFO("Processing StopRun command for RUN #" + std::to_string(m_run_n));
       m_listening = true;
       m_run_n++;
       std::vector<ConnectionSPC> conn_to_stop;
