@@ -10,7 +10,8 @@ fi
 export RCPORT=44000
 export HOSTIP=127.0.0.1
 #################  Run control ###################
-xterm -sb -sl 1000000 -T "Runcontrol" -e 'bin/euRun -n RunControl -a tcp://$RCPORT ; read '&
+#xterm -sb -sl 1000000 -T "Runcontrol" -e 'bin/euRun -n RunControl -a tcp://$RCPORT ; read '&
+xterm -sb -sl 1000000 -T "Runcontrol" -e 'bin/euRun -n AhcalRunControl -a tcp://$RCPORT ; read '&
 sleep 1  
 #################  Log collector #################
 xterm -sb -sl 1000 -geometry 160x30 -T "Logger" -e 'bin/euLog ; read' &
