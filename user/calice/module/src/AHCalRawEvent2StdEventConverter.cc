@@ -27,30 +27,51 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
                   { 187, std::make_tuple(0, 12, 18) },
                   { 188, std::make_tuple(0, 12, 12) },
                   //layer 10: former layer 12 - full HBU
-                  { 169, std::make_tuple(1, 18, 18) },
-                  { 170, std::make_tuple(1, 18, 12) },
-                  { 171, std::make_tuple(1, 12, 18) },
-                  { 172, std::make_tuple(1, 12, 12) },
-                  { 173, std::make_tuple(1, 18, 6) },
-                  { 174, std::make_tuple(1, 18, 0) },
-                  { 175, std::make_tuple(1, 12, 6) },
-                  { 176, std::make_tuple(1, 12, 0) },
-                  { 177, std::make_tuple(1, 6, 18) },
-                  { 178, std::make_tuple(1, 6, 12) },
-                  { 179, std::make_tuple(1, 0, 18) },
-                  { 180, std::make_tuple(1, 0, 12) },
-                  { 181, std::make_tuple(1, 6, 6) },
-                  { 182, std::make_tuple(1, 6, 0) },
-                  { 183, std::make_tuple(1, 0, 6) },
-                  { 184, std::make_tuple(1, 0, 0) }
+                  //shell script for big layer:
+                  //chip0=129 ; layer=1 ; for i in `seq 0 15` ; do echo "{"`expr ${i} + ${chip0}`", std::make_tuple("${layer}", "`expr 18 - \( ${i} / 8 \) \* 12 - \( ${i} / 2 \) \% 2 \* 6`", "`expr 18 - \( ${i} \% 8 \) / 4 \* 12 - ${i} \% 2 \* 6`") }," ; done
+
+                  { 129, std::make_tuple(1, 18, 18) },
+                  { 130, std::make_tuple(1, 18, 12) },
+                  { 131, std::make_tuple(1, 12, 18) },
+                  { 132, std::make_tuple(1, 12, 12) },
+                  { 133, std::make_tuple(1, 18, 6) },
+                  { 134, std::make_tuple(1, 18, 0) },
+                  { 135, std::make_tuple(1, 12, 6) },
+                  { 136, std::make_tuple(1, 12, 0) },
+                  { 137, std::make_tuple(1, 6, 18) },
+                  { 138, std::make_tuple(1, 6, 12) },
+                  { 139, std::make_tuple(1, 0, 18) },
+                  { 140, std::make_tuple(1, 0, 12) },
+                  { 141, std::make_tuple(1, 6, 6) },
+                  { 142, std::make_tuple(1, 6, 0) },
+                  { 143, std::make_tuple(1, 0, 6) },
+                  { 144, std::make_tuple(1, 0, 0) },
+
+                  { 169, std::make_tuple(2, 18, 18) },
+                  { 170, std::make_tuple(2, 18, 12) },
+                  { 171, std::make_tuple(2, 12, 18) },
+                  { 172, std::make_tuple(2, 12, 12) },
+                  { 173, std::make_tuple(2, 18, 6) },
+                  { 174, std::make_tuple(2, 18, 0) },
+                  { 175, std::make_tuple(2, 12, 6) },
+                  { 176, std::make_tuple(2, 12, 0) },
+                  { 177, std::make_tuple(2, 6, 18) },
+                  { 178, std::make_tuple(2, 6, 12) },
+                  { 179, std::make_tuple(2, 0, 18) },
+                  { 180, std::make_tuple(2, 0, 12) },
+                  { 181, std::make_tuple(2, 6, 6) },
+                  { 182, std::make_tuple(2, 6, 0) },
+                  { 183, std::make_tuple(2, 0, 6) },
+                  { 184, std::make_tuple(2, 0, 0) }
             };
+
 //      const int planeCount = 2;
 //      const int pedestalLimit = 400;
 };
 
 namespace {
-auto dummy0 = eudaq::Factory<eudaq::StdEventConverter>::
-      Register<AHCalRawEvent2StdEventConverter>(AHCalRawEvent2StdEventConverter::m_id_factory);
+   auto dummy0 = eudaq::Factory<eudaq::StdEventConverter>::
+         Register<AHCalRawEvent2StdEventConverter>(AHCalRawEvent2StdEventConverter::m_id_factory);
 }
 
 bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdEventSP d2, eudaq::ConfigSPC conf) const {
