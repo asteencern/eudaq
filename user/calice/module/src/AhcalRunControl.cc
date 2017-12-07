@@ -14,6 +14,7 @@ class AhcalRunControl: public eudaq::RunControl {
 
    private:
       void WaitForStates(const eudaq::Status::State state, const std::string message);
+      void WaitForMessage(const std::string message);
       uint32_t m_stop_seconds; //maximum length of running in seconds
       uint32_t m_stop_filesize; //filesize in bytes. Run gets stopped after reaching this size
       uint32_t m_stop_events; // maximum number of events before the run gets stopped
@@ -63,6 +64,7 @@ void AhcalRunControl::WaitForStates(const eudaq::Status::State state, const std:
       auto map_conn_status = GetActiveConnectionStatusMap();
       for (auto &conn_status : map_conn_status) {
          auto state_conn = conn_status.second->GetState();
+//         conn_status.second->GetMessage()
          if (state_conn != state) {
             waiting = true;
          }
@@ -132,10 +134,28 @@ void AhcalRunControl::Exec() {
                Configure();
                std::this_thread::sleep_for(std::chrono::seconds(2));
                //wait until everything is configured
-               WaitForStates(eudaq::Status::STATE_CONF, "Waiting for end of configure");
+               WaitForMessage("Configured");
+//               WaitForStates(eudaq::Status::STATE_CONF, "Waiting for end of configure");
             }
             StartRun();
          }
       }
+   }
+}
+
+inline void AhcalRunControl::WaitForMessage(const std::string message) {
+   while (1) {
+      bool waiting = false;
+      auto map_conn_status = GetActiveConnectionStatusMap();
+      for (auto &conn_status : map_conn_status) {
+         auto conn_message = conn_status.second->GetMessage();
+         if (conn_message.compare("Configured")) {
+            //does not match
+            std::cout << "DEBUG: waiting for " << conn_status.first->GetName() << ", which is " << conn_message << " instead of " << message << std::endl;
+            waiting = true;
+         }
+      }
+      if (!waiting) break;
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
    }
 }

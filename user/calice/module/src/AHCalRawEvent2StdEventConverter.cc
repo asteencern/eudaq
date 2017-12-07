@@ -8,8 +8,8 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
-#define planeCount 2
-#define pedestalLimit 400
+#define planeCount 3
+#define pedestalLimit 300
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
    public:
@@ -20,7 +20,7 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
       int getPlaneNumberFromCHIPID(int chipid) const;
       int getXcoordFromChipChannel(int chipid, int channelNr) const;
       int getYcoordFromChipChannel(int chipid, int channelNr) const;
-      const std::map<int, std::tuple<int, int, int>> mapping = { //tuple: layer, xcoordinate, ycoordinate
+      const std::map<int, std::tuple<int, int, int>> mapping = { //chipid to tuple: layer, xcoordinate, ycoordinate
             //layer 1: single HBU
                   { 185, std::make_tuple(0, 18, 18) },
                   { 186, std::make_tuple(0, 18, 12) },
