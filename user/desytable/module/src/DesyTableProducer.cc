@@ -51,6 +51,7 @@ void DesyTableProducer::DoInitialise() {
 }
 
 void DesyTableProducer::DoConfigure() {
+	std::cout << "DEBUG mark 0" << std::endl;
 //   POSITION_READ_INTERVAL_SECONDS = 10 #how iften will be the position checked durig data taking.
 //   #in order to approch the position from a specific direction, a relative approach
 //   # start position can be set, as a relative position from the desired end position
@@ -76,11 +77,14 @@ void DesyTableProducer::DoConfigure() {
    //conf->Print(std::cout);
    readInterval = std::chrono::duration<float>(conf->Get("POSITION_READ_INTERVAL_SECONDS", 10.0));
    checkStabilitySeconds = std::chrono::duration<float>(conf->Get("CHECK_STABILITY_SECONDS", 1.0));
+   std::cout << "DEBUG mark 1" << std::endl;
    m_comm->trashRecvBuffer();
+   std::cout << "DEBUG mark 2" << std::endl;
    const double invalid = 1000000000.0; //infinity
    const double cinvalid = invalid - 1.0; //constant to compare with invalid. Has to be lower because of the floating point
 
    double h_slow_mm = conf->Get("HORIZONTAL_SLOW_LENGTH_MM", 0.0);
+   std::cout << "DEBUG mark 3" << std::endl;
    if (h_slow_mm < 0.01) h_slow_mm = conf->Get("HORIZONTAL_SLOW_LENGTH_RAW", 0.0) / m_comm->getMmToBins();
    if (h_slow_mm > 0.01) m_comm->setPresetP5mm(h_slow_mm, 0); //send only values > 0
 
@@ -109,17 +113,19 @@ void DesyTableProducer::DoConfigure() {
    double v_approach_raw = conf->Get("VERTICAL_APROACH_RELATIVE_POSITION_RAW", invalid);
    if (v_approach_mm >= cinvalid) v_approach_mm == (v_approach_raw >= cinvalid) ? invalid : v_approach_raw / m_comm->getMmToBins();
    if (v_approach_mm <= 0.01) v_approach_mm = invalid;
-
+   std::cout << "DEBUG mark 4" << std::endl;
    if ((h_approach_mm < cinvalid) && (h_pos_mm < cinvalid)) {
       EUDAQ_INFO_STREAMOUT("Preparing for the approach position H=" + std::to_string(h_pos_mm + h_approach_mm) + "mm (pos="
             + std::to_string(h_pos_mm) + "mm,approach=" + std::to_string(h_approach_mm) + ")", std::cout, std::cerr);
       m_comm->setPresetP1mm(h_pos_mm + h_approach_mm, 0);
    }
+   std::cout << "DEBUG mark 5" << std::endl;
    if ((v_approach_mm < cinvalid) && (v_pos_mm < cinvalid)) {
       EUDAQ_INFO_STREAMOUT("Preparing for the approach position V=" + std::to_string(v_pos_mm + v_approach_mm) + "mm (pos="
             + std::to_string(v_pos_mm) + "mm,approach=" + std::to_string(v_approach_mm) + ")", std::cout, std::cerr);
       m_comm->setPresetP1mm(v_pos_mm + v_approach_mm, 1);
    }
+   std::cout << "DEBUG mark 6" << std::endl;
    //wait for the stable position
    if (((h_approach_mm < cinvalid) && (h_pos_mm < cinvalid)) || ((v_approach_mm < cinvalid) && (v_pos_mm < cinvalid))) {
       m_comm->trashRecvBuffer();
@@ -128,6 +134,7 @@ void DesyTableProducer::DoConfigure() {
       double last_v_mm = 0.0;
       bool done = false;
       while (!done) {
+		  std::cout << "DEBUG mark 7" << std::endl;
          double h_mm = m_comm->getActualPositionmm(0);
          double v_mm = m_comm->getActualPositionmm(1);
          if ((abs(last_h_mm - h_mm) > 0.05) || (abs(last_v_mm - v_mm) > 0.05)) {
@@ -181,6 +188,7 @@ void DesyTableProducer::DoConfigure() {
          }
       }
    }
+   std::cout << "DEBUG mark e" << std::endl;
 }
 
 void DesyTableProducer::DoStartRun() {

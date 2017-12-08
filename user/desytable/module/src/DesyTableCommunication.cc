@@ -41,6 +41,16 @@ DesyTableCommunication::DesyTableCommunication(std::string address, int port) {
       WSACleanup;
       return;
    }
+   //set the timeout to 100 ms
+
+   int timeout = 100;//timeout in ms
+   // unsigned int tosize = sizeof(timeout);
+   int ret2=setsockopt(_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+   if (ret2 == SOCKET_ERROR) {
+	   std::cout << "ERROR: timeout not set correctly" << std::endl;
+   } else {
+	   std::cout << "DEBUG: timeout set successfully" << std::endl;
+   }
    std::cout << "DEBUG: Socket OK" << std::endl;
    struct sockaddr_in dstAddr; //win ok
    //??     memset(&dstAddr, 0, sizeof(dstAddr));
