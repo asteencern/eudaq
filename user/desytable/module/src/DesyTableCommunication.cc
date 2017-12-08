@@ -1,11 +1,21 @@
-#include <arpa/inet.h>
-#include <asm-generic/socket.h>
 #include <DesyTableCommunication.hh>
-#include <netinet/in.h>
-#include <stddef.h>
+
+
+#ifdef _WIN32
+#pragma comment(lib, "Ws2_32.lib")
+#include <winsock.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/time.h>
 #include <unistd.h>
+#endif
+
+#include <stddef.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -13,34 +23,38 @@
 #include <stdexcept>
 #include <thread>
 
+
+
+
+
 DesyTableCommunication::DesyTableCommunication(std::string address, int port) {
    std::unique_lock<std::mutex> mt(communication_mutex);
    //TODO to be written for the windows. Only a stub here:
 #ifdef _WIN32
    WSADATA wsaData;
    int wsaRet=WSAStartup(MAKEWORD(2, 2), &wsaData); //initialize winsocks 2.2
-   if (wsaRet) {cout << "ERROR: WSA init failed with code " << wsaRet << endl; return false;}
-   cout << "DEBUG: WSAinit OK" << endl;
+   if (wsaRet) {std::cout << "ERROR: WSA init failed with code " << wsaRet << std::endl; return;}
+   std::cout << "DEBUG: WSAinit OK" << std::endl;
 
-   std::unique_lock<std::mutex> myLock(_mufd);
+   std::unique_lock<std::mutex> myLock(communication_mutex);
    _fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    if (_fd == INVALID_SOCKET) {
-      cout << "ERROR: invalid socket" << endl;
+	   std::cout << "ERROR: invalid socket" << std::endl;
       WSACleanup;
-      return false;
+      return;
    }
-   cout << "DEBUG: Socket OK" << endl;
+   std::cout << "DEBUG: Socket OK" << std::endl;
    struct sockaddr_in dstAddr; //win ok
    //??     memset(&dstAddr, 0, sizeof(dstAddr));
    dstAddr.sin_family = AF_INET;
-   dstAddr.sin_port = htons(_port);
+   dstAddr.sin_port = htons(port);
    dstAddr.sin_addr.s_addr = inet_addr(address.c_str());
 
    int ret = connect(_fd, (struct sockaddr *) &dstAddr, sizeof(dstAddr));
    if (ret != 0) {
       throw std::runtime_error("Could not open TCP to the DESY stage");
    }
-   cout << "DEBUG: Connect OK" << endl;
+   std::cout << "DEBUG: Connect OK" <<std::endl;
 #else
    std::cout << "DEBUG: initializating DesyTableCommunication" << std::endl;
    struct sockaddr_in dstAddr;
@@ -82,7 +96,7 @@ DesyTableCommunication::~DesyTableCommunication()
    std::cout << "Connection of Communicating library closed" << std::endl;
 }
 
-int DesyTableCommunication::send(std::string command, uint8_t address) {
+int DesyTableCommunication::transmit(std::string command, uint8_t address) {
    std::unique_lock<std::mutex> myLock(communication_mutex);
    char sendBuff[512];
    int length = sprintf(sendBuff, "Z%02d%s\r", address, command.c_str());
@@ -113,7 +127,7 @@ std::string DesyTableCommunication::receive() {
    return std::string(buf);
 }
 
-bool DesyTableCommunication::setHysteresis(int value, uint8_t address) {
+void DesyTableCommunication::setHysteresis(int value, uint8_t address) {
    //TODO it is a more complex task Better to set manually by setting 99 to P1 (enters the setup mode) and by changing the E9 setting to desired value
 }
 
@@ -148,12 +162,15 @@ std::string DesyTableCommunication::receive(int bytes, std::chrono::milliseconds
 int DesyTableCommunication::trashRecvBuffer() {
    char buf[512];
    int received = 0;
+   int total = 0;
    while (true) {
       received = recv(_fd, buf, 512, 0);
       if (received > 0) {
+		  total += received;
          std::cout << "DEBUG: trashing " << received << " bytes." << std::endl;
       } else break;
    }
+   return total;
 }
 
 int DesyTableCommunication::getDebugLevel() const {
@@ -165,7 +182,7 @@ void DesyTableCommunication::setDebugLevel(int debugLevel = 0) {
 }
 
 int DesyTableCommunication::requestValue(uint8_t address, const char* command, const char* expectedResponse) {
-   send(command, address);
+   transmit(command, address);
    std::string returnString = receive(12, std::chrono::milliseconds(100));
    if (returnString.length() != 12) {
       std::cout << "ERROR: wrong length of response in requestValue(" << address << ")" << returnString.length() << ", \"" << returnString << "\"" << std::endl;
@@ -191,46 +208,47 @@ int DesyTableCommunication::getPresetP5(uint8_t address) {
    return requestValue(address, "O\r", "@V92");
 }
 
-int DesyTableCommunication::takeOver(uint8_t address) {
-   send("U\r", address);
+void DesyTableCommunication::takeOver(uint8_t address) {
+	transmit("U\r", address);
 }
 
 std::string DesyTableCommunication::getControllerSetup(uint8_t address) {
    //   DEBUG: sending 6 bytes:Z01S
    //   "ead 78bytes. Message="T000600222222333333000000000100>040020303000100100100002500000000000200000000
    // TODO to be decoded according to the manual
-   send("S\r", address);
+	transmit("S\r", address);
    std::string answer = receive(78, std::chrono::milliseconds(10000));
+   return answer;
 }
 
-int DesyTableCommunication::setActualPosition(const int value, const uint8_t address) {
+void DesyTableCommunication::setActualPosition(const int value, const uint8_t address) {
    char sign = value < 0 ? '-' : '+';
    char buf[20];
    sprintf(buf, "A%c%06d\r", sign, abs(value));
    if (debugLevel > 2) std::cout << "DEBUG: set position string: \"" << buf << "\"" << std::endl;
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
-   send(std::string(buf), address);
+   transmit(std::string(buf), address);
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
    takeOver(address);
 }
 
-int DesyTableCommunication::setPresetP1(int value, uint8_t address) {
+void DesyTableCommunication::setPresetP1(int value, uint8_t address) {
    char sign = value < 0 ? '-' : '+';
    char buf[20];
    sprintf(buf, "B%c%06d\r", sign, abs(value));
    if (debugLevel > 2) std::cout << "DEBUG: set position string: \"" << buf << "\"" << std::endl;
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
-   send(std::string(buf), address);
+   transmit(std::string(buf), address);
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
    takeOver(address);
 }
 
-int DesyTableCommunication::setPresetP5(int value, uint8_t address) {
+void DesyTableCommunication::setPresetP5(int value, uint8_t address) {
    char buf[20];
    sprintf(buf, "F%06d\r", abs(value));
    if (debugLevel > 2) std::cout << "DEBUG: set position string: \"" << buf << "\"" << std::endl;
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
-   send(std::string(buf), address);
+   transmit(std::string(buf), address);
    if (debugLevel > 0) std::cout << "DEBUG: sending command " << buf << " to address " << address << std::endl;
    takeOver(address);
 }
@@ -261,17 +279,17 @@ float DesyTableCommunication::getPresetP5mm(const uint8_t address) {
    return pos;
 }
 
-int DesyTableCommunication::setActualPositionmm(const float value, const uint8_t address) {
+void  DesyTableCommunication::setActualPositionmm(const float value, const uint8_t address) {
    int rounded = (value >= 0) ? (int) (value * getMmToBins() + 0.5) : (int) (value * getMmToBins() - 0.5);
    setActualPosition(rounded, address);
 }
 
-int DesyTableCommunication::setPresetP1mm(const float value, const uint8_t address) {
+void DesyTableCommunication::setPresetP1mm(const float value, const uint8_t address) {
    int rounded = (value >= 0) ? (int) (value * getMmToBins() + 0.5) : (int) (value * getMmToBins() - 0.5);
    setPresetP1(rounded, address);
 }
 
-int DesyTableCommunication::setPresetP5mm(const float value, const uint8_t address) {
+void DesyTableCommunication::setPresetP5mm(const float value, const uint8_t address) {
    int rounded = (value >= 0) ? (int) (value * getMmToBins() + 0.5) : (int) (value * getMmToBins() - 0.5);
    setPresetP5(rounded, address);
 }
