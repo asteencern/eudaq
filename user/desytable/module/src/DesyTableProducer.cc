@@ -3,6 +3,11 @@
 #include <Logger.hh>
 #include <iostream>
 #include <math.h>
+#include "eudaq/Producer.hh"
+#include "eudaq/OptionParser.hh"
+#include "eudaq/Logger.hh"
+#include "eudaq/Configuration.hh"
+#include "eudaq/Utils.hh"
 
 #ifndef _WIN32
 #include <sys/file.h>
@@ -71,36 +76,36 @@ void DesyTableProducer::DoConfigure() {
    readInterval = std::chrono::duration<float>(conf->Get("POSITION_READ_INTERVAL_SECONDS", 10.0));
    checkStabilitySeconds = std::chrono::duration<float>(conf->Get("CHECK_STABILITY_SECONDS", 1.0));
    m_comm->trashRecvBuffer();
-   const float invalid = 1000000000.0; //infinity
-   const float cinvalid = invalid - 1.0; //constant to compare with invalid. Has to be lower because of the floating point
+   const double invalid = 1000000000.0; //infinity
+   const double cinvalid = invalid - 1.0; //constant to compare with invalid. Has to be lower because of the floating point
 
-   float h_slow_mm = conf->Get("HORIZONTAL_SLOW_LENGTH_MM", 0.0);
+   double h_slow_mm = conf->Get("HORIZONTAL_SLOW_LENGTH_MM", 0.0);
    if (h_slow_mm < 0.01) h_slow_mm = conf->Get("HORIZONTAL_SLOW_LENGTH_RAW", 0.0) / m_comm->getMmToBins();
    if (h_slow_mm > 0.01) m_comm->setPresetP5mm(h_slow_mm, 0); //send only values > 0
 
-   float v_slow_mm = conf->Get("VERTICAL_SLOW_LENGTH_MM", 0.0);
+   double v_slow_mm = conf->Get("VERTICAL_SLOW_LENGTH_MM", 0.0);
    if (v_slow_mm < 0.01) v_slow_mm = conf->Get("VERTICAL_SLOW_LENGTH_RAW", 0.0) / m_comm->getMmToBins();
    if (v_slow_mm > 0.01) m_comm->setPresetP5mm(h_slow_mm, 1); //send only values > 0
 
-   float h_pos_mm = conf->Get("HORIZONTAL_POSITION_MM", invalid);
+   double h_pos_mm = conf->Get("HORIZONTAL_POSITION_MM", invalid);
 //   std::cout << "HORIZONTAL_POSITION_MM = " << h_pos_mm << std::endl;
-   float h_pos_raw = conf->Get("HORIZONTAL_POSITION", invalid);
+   double h_pos_raw = conf->Get("HORIZONTAL_POSITION", invalid);
    if (h_pos_mm >= cinvalid) h_pos_mm = (h_pos_raw >= cinvalid) ? invalid : h_pos_raw / m_comm->getMmToBins();
 
-   float v_pos_mm = conf->Get("VERTICAL_POSITION_MM", invalid);
+   double v_pos_mm = conf->Get("VERTICAL_POSITION_MM", invalid);
 //   std::cout << "VERTICAL_POSITION_MM = " << v_pos_mm << std::endl;
-   float v_pos_raw = conf->Get("VERTICAL_POSITION_RAW", invalid);
+   double v_pos_raw = conf->Get("VERTICAL_POSITION_RAW", invalid);
    if (v_pos_mm >= cinvalid) v_pos_mm = (v_pos_raw >= cinvalid) ? invalid : v_pos_raw / m_comm->getMmToBins();
 
-   float h_approach_mm = conf->Get("HORIZONTAL_APROACH_RELATIVE_POSITION_MM", invalid);
+   double h_approach_mm = conf->Get("HORIZONTAL_APROACH_RELATIVE_POSITION_MM", invalid);
 //   std::cout << "HORIZONTAL_APROACH_RELATIVE_POSITION_MM = " << h_approach_mm << std::endl;
-   float h_approach_raw = conf->Get("HORIZONTAL_APROACH_RELATIVE_POSITION_RAW", invalid);
+   double h_approach_raw = conf->Get("HORIZONTAL_APROACH_RELATIVE_POSITION_RAW", invalid);
    if (h_approach_mm >= cinvalid) h_approach_mm == (h_approach_raw >= cinvalid) ? invalid : h_approach_raw / m_comm->getMmToBins();
    if (h_approach_mm <= 0.01) h_approach_mm = invalid;
 
-   float v_approach_mm = conf->Get("VERTICAL_APROACH_RELATIVE_POSITION_MM", invalid);
+   double v_approach_mm = conf->Get("VERTICAL_APROACH_RELATIVE_POSITION_MM", invalid);
 //   std::cout << "VERTICAL_APROACH_RELATIVE_POSITION_MM = " << v_approach_mm << std::endl;
-   float v_approach_raw = conf->Get("VERTICAL_APROACH_RELATIVE_POSITION_RAW", invalid);
+   double v_approach_raw = conf->Get("VERTICAL_APROACH_RELATIVE_POSITION_RAW", invalid);
    if (v_approach_mm >= cinvalid) v_approach_mm == (v_approach_raw >= cinvalid) ? invalid : v_approach_raw / m_comm->getMmToBins();
    if (v_approach_mm <= 0.01) v_approach_mm = invalid;
 
@@ -118,12 +123,12 @@ void DesyTableProducer::DoConfigure() {
    if (((h_approach_mm < cinvalid) && (h_pos_mm < cinvalid)) || ((v_approach_mm < cinvalid) && (v_pos_mm < cinvalid))) {
       m_comm->trashRecvBuffer();
       auto tp_change = std::chrono::steady_clock::now();
-      float last_h_mm = 0.0;
-      float last_v_mm = 0.0;
+      double last_h_mm = 0.0;
+      double last_v_mm = 0.0;
       bool done = false;
       while (!done) {
-         float h_mm = m_comm->getActualPositionmm(0);
-         float v_mm = m_comm->getActualPositionmm(1);
+         double h_mm = m_comm->getActualPositionmm(0);
+         double v_mm = m_comm->getActualPositionmm(1);
          if ((abs(last_h_mm - h_mm) > 0.05) || (abs(last_v_mm - v_mm) > 0.05)) {
             last_h_mm = h_mm;
             last_v_mm = v_mm;
@@ -155,12 +160,12 @@ void DesyTableProducer::DoConfigure() {
    if ((h_pos_mm < cinvalid) || (v_pos_mm < cinvalid)) {
       m_comm->trashRecvBuffer();
       auto tp_change = std::chrono::steady_clock::now();
-      float last_h_mm = 0.0;
-      float last_v_mm = 0.0;
+      double last_h_mm = 0.0;
+      double last_v_mm = 0.0;
       bool done = false;
       while (!done) {
-         float h_mm = m_comm->getActualPositionmm(0);
-         float v_mm = m_comm->getActualPositionmm(1);
+         double h_mm = m_comm->getActualPositionmm(0);
+         double v_mm = m_comm->getActualPositionmm(1);
          if ((abs(last_h_mm - h_mm) > 0.05) || (abs(last_v_mm - v_mm) > 0.05)) {
             last_h_mm = h_mm;
             last_v_mm = v_mm;
@@ -208,9 +213,9 @@ void DesyTableProducer::RunLoop() {
    bool firstCycle = true;
    while (!m_exit_of_run) {
       m_comm->trashRecvBuffer();
-      float h_mm = m_comm->getActualPositionmm(0);
-      float v_mm = m_comm->getActualPositionmm(1);
-      if ((firstCycle) || (std::chrono::duration<float>(std::chrono::steady_clock::now() - tp_readout) > readInterval)) {
+      double h_mm = m_comm->getActualPositionmm(0);
+      double v_mm = m_comm->getActualPositionmm(1);
+      if ((firstCycle) || (std::chrono::duration<double>(std::chrono::steady_clock::now() - tp_readout) > readInterval)) {
          firstCycle = false;
          tp_readout = std::chrono::steady_clock::now();
          auto ev = eudaq::Event::MakeUnique("DesyTableRaw");
