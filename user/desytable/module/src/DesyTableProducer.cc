@@ -27,6 +27,7 @@ void DesyTableProducer::DoInitialise() {
    std::cout << "DEBUG: start of initialization" << std::endl;
    auto ini = GetInitConfiguration();
    m_comm = std::unique_ptr<DesyTableCommunication>(new DesyTableCommunication(ini->Get("IP_ADDRESS", "192.168.1.66"), ini->Get("TCP_PORT", 8000)));
+   std::cout << "communication module loaded" << std::endl;
    m_comm->setDebugLevel(ini->Get("DEBUG_VERBOSITY_LEVEL", 0));
    m_comm->setMmToBins(ini->Get("MM_TO_BINS", 10.0));
 //   std::cout << "DEBUG: doinit 1" << std::endl;

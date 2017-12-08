@@ -35,8 +35,6 @@ DesyTableCommunication::DesyTableCommunication(std::string address, int port) {
    int wsaRet=WSAStartup(MAKEWORD(2, 2), &wsaData); //initialize winsocks 2.2
    if (wsaRet) {std::cout << "ERROR: WSA init failed with code " << wsaRet << std::endl; return;}
    std::cout << "DEBUG: WSAinit OK" << std::endl;
-
-   std::unique_lock<std::mutex> myLock(communication_mutex);
    _fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    if (_fd == INVALID_SOCKET) {
 	   std::cout << "ERROR: invalid socket" << std::endl;
