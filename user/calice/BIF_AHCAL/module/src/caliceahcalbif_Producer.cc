@@ -7,6 +7,7 @@
 #include <iostream>
 #include <ostream>
 #include <vector>
+//#include <memory> //unique_ptr
 
 using eudaq::to_string;
 using eudaq::to_hex;
@@ -15,15 +16,17 @@ using namespace tlu;
 class caliceahcalbifProducer: public eudaq::Producer {
    public:
       caliceahcalbifProducer(const std::string name, const std::string &runcontrol);
-      void OnStatus() override;
-      void OnUnrecognised(const std::string & cmd, const std::string & param) override;
+      void OnStatus() override final;
+      //void OnUnrecognised(const std::string & cmd, const std::string & param) override;
 
-      void DoConfigure() override;
-      void DoStartRun() override;
-      void DoStopRun() override;
-      void DoTerminate() override;
-      void DoReset() override;
-      void Exec() override;
+      void DoInitialise() override final;
+      void DoConfigure() override final;
+      void DoStartRun() override final ;
+      void DoStopRun() override final;
+      void DoTerminate() override final;
+      void DoReset() override final;
+      void RunLoop() override final;
+      //void Exec() override final;
 
       void MainLoop();
       void OpenRawFile(unsigned param, bool _writerawfilename_timestamp);
@@ -119,15 +122,15 @@ caliceahcalbifProducer::caliceahcalbifProducer(const std::string name, const std
 
 }
 
-void caliceahcalbifProducer::Exec() {
-   StartCommandReceiver();
-   while (IsActiveCommandReceiver()) {
-      MainLoop();
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-   }
-}
+//void caliceahcalbifProducer::Exec() {
+//   StartCommandReceiver();
+//   while (IsActiveCommandReceiver()) {
+//      MainLoop();
+//      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+//   }
+//}
 
-void caliceahcalbifProducer::MainLoop() {
+void caliceahcalbifProducer::RunLoop() {
    std::cout << "Main loop!" << std::endl;
    _last_readout_time = std::time(NULL);
    //         eudaq::RawDataEvent CycleEvent; //
@@ -176,6 +179,9 @@ void caliceahcalbifProducer::MainLoop() {
       }
    } while (!done);
 }
+void caliceahcalbifProducer::DoInitialise(){
+   //nothing to do for BIF.
+}
 
 void caliceahcalbifProducer::DoConfigure() {
    const eudaq::Configuration &param = *GetConfiguration();
@@ -212,7 +218,8 @@ void caliceahcalbifProducer::DoConfigure() {
    if (!_redirectedInputFileName.length()) {
       //	int errorhandler = param.Get("ErrorHandler", 2);
 
-      m_tlu = std::unique_ptr<caliceahcalbifController>(new caliceahcalbifController(param.Get("ConnectionFile", "file:///bif_connections.xml"), param.Get("DeviceName", "minitlu_bif")));
+      m_tlu = std::unique_ptr<caliceahcalbifController>(
+            new caliceahcalbifController(param.Get("ConnectionFile", "file:///bif_connections.xml"), param.Get("DeviceName", "minitlu_bif")));
 
       std::cout << "Firmware version " << std::hex << m_tlu->GetFirmwareVersion() << std::dec << std::endl;
       std::cout << "Firmware version " << std::hex << m_tlu->GetFirmwareVersion() << std::dec << std::endl;
@@ -262,7 +269,7 @@ void caliceahcalbifProducer::OpenRawFile(unsigned param, bool _writerawfilename_
       sprintf(file_timestamp, "__%02dp%02dp%02d__%02dp%02dp%02d.raw", Tm->tm_mday, Tm->tm_mon + 1, Tm->tm_year + 1900, Tm->tm_hour, Tm->tm_min, Tm->tm_sec);
       myString.assign(file_timestamp, 26);
    } else
-      myString = ".raw";
+   myString = ".raw";
 
    std::string _rawFilenameTimeStamp;
    //if chosen like this, add the local time to the filename
@@ -377,12 +384,12 @@ void caliceahcalbifProducer::OnStatus() {
    SetStatusTag("PARTICLES", to_string(_stats.triggers));
 }
 
-void caliceahcalbifProducer::OnUnrecognised(const std::string & cmd, const std::string & param) {
-   std::cout << "Unrecognised: (" << cmd.length() << ") " << cmd;
-   if (param.length() > 0) std::cout << " (" << param << ")";
-   std::cout << std::endl;
-   EUDAQ_WARN("Unrecognised command");
-}
+//void caliceahcalbifProducer::OnUnrecognised(const std::string & cmd, const std::string & param) {
+//   std::cout << "Unrecognised: (" << cmd.length() << ") " << cmd;
+//   if (param.length() > 0) std::cout << " (" << param << ")";
+//   std::cout << std::endl;
+//   EUDAQ_WARN("Unrecognised command");
+//}
 
 bool caliceahcalbifProducer::FetchBifDataWasSuccessfull() {
    if (_redirectedInputFileName.length()) { //reading from file instead of bif
@@ -525,7 +532,8 @@ void caliceahcalbifProducer::ProcessQueuedBifData() {
                std::cout << std::hex << "BIF cycle not in sequence! _ReadoutCycle: " << _ReadoutCycle << "\t expected_cycle_modulo:" << expected_cycle_modulo;
                std::cout << "\tarrived modulo: " << arrived_cycle_modulo << std::dec << std::endl;
                char errorMessage[200];
-               sprintf(errorMessage, "BIF Cycle not in sequence in Run %d! expected: %04X arrived: %04X. Possible data loss", m_run, expected_cycle_modulo, arrived_cycle_modulo);
+               sprintf(errorMessage, "BIF Cycle not in sequence in Run %d! expected: %04X arrived: %04X. Possible data loss", m_run, expected_cycle_modulo,
+                     arrived_cycle_modulo);
                EUDAQ_WARN(errorMessage);
                uint16_t difference = (arrived_cycle_modulo - expected_cycle_modulo) & 0x0FFF;
                //                                 if (difference==0x0FFF) differnece=-1;//differnece is too big for correction
@@ -846,19 +854,19 @@ void caliceahcalbifProducer::sendallevents(std::deque<eudaq::EventUP> & deqEvent
    }
 }
 
-int main(int /*argc*/, const char ** argv) {
-   eudaq::OptionParser op("EUDAQ AHCAL BIF Producer", "1.0", "The Producer task for the BIF (based on mini-tlu)");
-   eudaq::Option<std::string> rctrl(op, "r", "runcontrol", "tcp://localhost:44000", "address", "The address of the RunControl application");
-   eudaq::Option<std::string> level(op, "l", "log-level", "NONE", "level", "The minimum level for displaying log messages locally");
-
-   try {
-      op.Parse(argv);
-      EUDAQ_LOG_LEVEL(level.Value());
-      auto app = eudaq::Factory<eudaq::Producer>::MakeShared<const std::string&, const std::string&>
-            (eudaq::cstr2hash("caliceahcalbifProducer"), "caliceahcalbifProducer", rctrl.Value());
-      app->Exec();
-   } catch (...) {
-      return op.HandleMainException();
-   }
-   return 0;
-}
+//int main(int /*argc*/, const char ** argv) {
+//   eudaq::OptionParser op("EUDAQ AHCAL BIF Producer", "1.0", "The Producer task for the BIF (based on mini-tlu)");
+//   eudaq::Option<std::string> rctrl(op, "r", "runcontrol", "tcp://localhost:44000", "address", "The address of the RunControl application");
+//   eudaq::Option<std::string> level(op, "l", "log-level", "NONE", "level", "The minimum level for displaying log messages locally");
+//
+//   try {
+//      op.Parse(argv);
+//      EUDAQ_LOG_LEVEL(level.Value());
+//      auto app = eudaq::Factory<eudaq::Producer>::MakeShared<const std::string&, const std::string&>
+//            (eudaq::cstr2hash("caliceahcalbifProducer"), "caliceahcalbifProducer", rctrl.Value());
+//      app->Exec();
+//   } catch (...) {
+//      return op.HandleMainException();
+//   }
+//   return 0;
+//}
