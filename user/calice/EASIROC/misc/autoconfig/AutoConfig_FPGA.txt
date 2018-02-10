@@ -1,0 +1,18 @@
+# Auto config file for spiroc2a debug FPGA
+NameString PinName
+./tmp/PinName.txt
+
+NameParam word_0
+./setup/word_0.txt
+
+NameParam word_1
+./setup/word_1.txt
+
+NameParam word_2
+./setup/word_2.txt
+
+NameParam word_3
+./setup/word_3.txt
+
+NameParam word_5
+./setup/word_5.txt

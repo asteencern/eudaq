@@ -1,0 +1,4 @@
+#Slow Controll Read resister name
+StartDefinition ReadResisterName
+ReadSC_Channel
+EndDefinition

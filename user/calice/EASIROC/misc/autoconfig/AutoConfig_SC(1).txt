@@ -1,0 +1,145 @@
+#Auto config file for SPIROC-A slow control
+NameString SCName
+./tmp/SCName.txt
+
+NameParam EnInputDAC
+./setup/EnInputDAC.txt
+
+NameParam ref8bitDAC
+./setup/ref8bitDAC.txt
+
+NameParam Input8bitDAC
+./setup/Input8bitDAC.txt
+
+NameParam biasLGPA
+./setup/biasLGPA.txt
+
+NameParam ppHGPA
+./setup/ppHGPA.txt
+
+NameParam EnHGPA
+./setup/EnHGPA.txt
+
+NameParam ppLGPA
+./setup/ppLGPA.txt
+
+NameParam EnLGPA
+./setup/EnLGPA.txt
+
+NameParam HGPAComp
+./setup/HGPAComp.txt
+
+NameParam HGPAFback
+./setup/HGPAFback.txt
+
+NameParam LGPAFback
+./setup/LGPAFback.txt
+
+NameParam LGPAComp
+./setup/LGPAComp.txt
+
+NameParam PreAmpCtest
+./setup/PreAmpCtest.txt
+
+NameParam ppLGSSh
+./setup/ppLGSSh.txt
+
+NameParam EnLGSSh
+./setup/EnLGSSh.txt
+
+NameParam TimeCLGSSh
+./setup/TimeCLGSSh.txt
+
+NameParam ppHGSSh
+./setup/ppHGSSh.txt
+
+NameParam EnHGSSh
+./setup/EnHGSSh.txt
+
+NameParam TimeCHGSSh
+./setup/TimeCHGSSh.txt
+
+NameParam ppFSFollow
+./setup/ppFSFollow.txt
+
+NameParam EnFSh
+./setup/EnFSh.txt
+
+NameParam ppFS
+./setup/ppFS.txt
+
+NameParam ppTandH
+./setup/ppTandH.txt
+
+NameParam EnTandH
+./setup/EnTandH.txt
+
+NameParam biasTandH
+./setup/biasTandH.txt
+
+NameParam EnDiscri
+./setup/EnDiscri.txt
+
+NameParam ppDiscri
+./setup/ppDiscri.txt
+
+NameParam LatchDirect
+./setup/LatchDirect.txt
+
+NameParam DiscriMask
+./setup/DiscriMask.txt
+
+NameParam DAC
+./setup/DAC.txt
+
+NameParam DACslope
+./setup/DACslope.txt
+
+NameParam ppDAC
+./setup/ppDAC.txt
+
+NameParam EnDAC
+./setup/EnDAC.txt
+
+NameParam ppBgap
+./setup/ppBgap.txt
+
+NameParam EnBgap
+./setup/EnBgap.txt
+
+NameParam ppHGOTAq
+./setup/ppHGOTAq.txt
+
+NameParam ppLGOTAq
+./setup/ppLGOTAq.txt
+
+NameParam ppProbeOTAq
+./setup/ppProbeOTAq.txt
+
+NameParam ppLVDS
+./setup/ppLVDS.txt
+
+NameParam EnHGOTAq
+./setup/EnHGOTAq.txt
+
+NameParam EnLGOTAq
+./setup/EnLGOTAq.txt
+
+NameParam EnProbeOTAq
+./setup/EnProbeOTAq.txt
+
+NameParam EnLVDS
+./setup/EnLVDS.txt
+
+NameParam EnDigOut
+./setup/EnDigOut.txt
+
+NameParam EnOR32
+./setup/EnOR32.txt
+
+NameParam En32Trig
+./setup/En32Trig.txt
+
+NameParam NC
+./setup/NC.txt
+

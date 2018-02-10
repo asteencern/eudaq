@@ -1,0 +1,6 @@
+#Auto config file for SPIROC2A Read SC
+NameString ReadSCName
+./tmp/ReadSCName.txt
+
+NameParam ReadSC_Channel
+./setup/ReadSC_Channel.txt
