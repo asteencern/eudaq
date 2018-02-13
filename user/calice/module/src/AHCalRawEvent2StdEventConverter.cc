@@ -25,7 +25,7 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
 //                  { 185, std::make_tuple(0, 18, 18) },
 //                  { 186, std::make_tuple(0, 18, 12) },
 //                  { 187, std::make_tuple(0, 12, 18) },
-//                  { 188, std::make_tuple(0, 12, 12) },
+//                   { 188, std::make_tuple(0, 12, 12) },
                   //layer 10: former layer 12 - full HBU
                   //shell script for big layer:
                   //chip0=129 ; layer=1 ; for i in `seq 0 15` ; do echo "{"`expr ${i} + ${chip0}`", std::make_tuple("${layer}", "`expr 18 - \( ${i} / 8 \) \* 12 - \( ${i} / 2 \) \% 2 \* 6`", "`expr 18 - \( ${i} \% 8 \) / 4 \* 12 - ${i} \% 2 \* 6`") }," ; done
@@ -151,7 +151,15 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
          if (planeNumber >= 0) {  //plane, which is not found, has index -1
             if (hitbit) {
                if (adc < pedestalLimit) continue;
-               int coordIndex = getXcoordFromChipChannel(chipid, ichan) * planesXsize + getYcoordFromChipChannel(chipid, ichan); //get the index from the HBU array
+	       //get the index from the HBU array
+	       //standart view: 1st hbu in upper right corner, asics facing to the viewer, tiles in the back. Dit upper right corner:
+	       //int coorx=getXcoordFromChipChannel(chipid, ichan);
+	       //int coory=getYcoordFromChipChannel(chipid, ichan);
+	       //testbeam view: side slab in the bottom, electronics facing beam line:
+	       int coory=getXcoordFromChipChannel(chipid, ichan);
+	       int coorx=planesYsize-getYcoordFromChipChannel(chipid, ichan)-1;
+	       
+               int coordIndex = coorx * planesXsize + coory; 
                if (HBUs[planeNumber][coordIndex] >= 0) std::cout << "ERROR: channel already has a value" << std::endl;
                HBUs[planeNumber][coordIndex] = gainbit ? adc : 10 * adc;
                //HBUs[planeNumber][coordIndex] = 1;
