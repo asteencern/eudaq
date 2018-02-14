@@ -95,7 +95,7 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
 	{189, std::make_tuple(3, 6, 6) },
 	{190, std::make_tuple(3, 6, 0) },
 	{191, std::make_tuple(3, 0, 6) },
-	{192, std::make_tuple(3, 0, 0) }
+	{192, std::make_tuple(3, 0, 0) },
 
 	{209, std::make_tuple(0, 18, 18) },
 	{210, std::make_tuple(0, 18, 12) },
@@ -163,7 +163,7 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
 	{253, std::make_tuple(3, 6, 6) },
 	{254, std::make_tuple(3, 6, 0) },
 	{255, std::make_tuple(3, 0, 6) },
-	{0, std::make_tuple(3, 0, 0) },
+	{0, std::make_tuple(3, 0, 0) }
 
 
             };
