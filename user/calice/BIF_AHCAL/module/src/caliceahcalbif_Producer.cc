@@ -53,7 +53,6 @@ class caliceahcalbifProducer: public eudaq::Producer {
       caliceahcalbifProducer::EventNumbering _eventNumberingPreference;
 
       unsigned m_run;
-      unsigned int m_evtnum;
       unsigned readout_delay;
       bool done;
       bool _TLUStarted;
@@ -285,7 +284,6 @@ void caliceahcalbifProducer::DoStartRun() {
    _stats= {0,0,0,0};
    _BORESent = false;
    _firstTriggerNumber = 0;
-   m_evtnum = 0;
    // raw file open
    if (_writeRaw) OpenRawFile(GetRunNumber(), _writerawfilename_timestamp);
 
