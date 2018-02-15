@@ -856,7 +856,6 @@ void caliceahcalbifProducer::sendallevents(std::deque<eudaq::EventUP> & deqEvent
 //         deqEvent.front()->Print(std::cout,0);
       SendEvent(std::move(deqEvent.front()));
       deqEvent.pop_front();
-      SetStatusTag("EventN",m_evtnum++);
    }
 }
 
