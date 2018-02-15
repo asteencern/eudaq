@@ -1,5 +1,6 @@
 bin/*
 build/*
+build6/*
 conf/*
 data/*
 include/*
