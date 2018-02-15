@@ -700,7 +700,7 @@ namespace eudaq {
             if (startTS && (!_producer->getIgnoreLdaTimestamps())) {
                uint64_t ts_beg = startTS + _producer->getAhcalbxid0Offset() + bxid * _producer->getAhcalbxidWidth() - 1;
                uint64_t ts_end = startTS + _producer->getAhcalbxid0Offset() + (bxid + 1) * _producer->getAhcalbxidWidth() + 1;
-               nev->SetTimestamp(ts_beg, ts_end, false);
+               nev->SetTimestamp(ts_beg, ts_end, true);
             }
             for (auto & minipacket : sameBxidPackets.second) {
                if (minipacket.size()) {

@@ -130,6 +130,7 @@ void AhcalRunControl::Exec() {
 
             if (m_next_conf_path.size()) {
                //TODO: check if file exists
+               EUDAQ_INFO("Reading new config file: "+m_next_conf_path);
                ReadConfigureFile(m_next_conf_path);
                Configure();
                std::this_thread::sleep_for(std::chrono::seconds(2));
