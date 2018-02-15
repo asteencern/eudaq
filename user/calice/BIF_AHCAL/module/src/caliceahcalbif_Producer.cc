@@ -53,6 +53,7 @@ class caliceahcalbifProducer: public eudaq::Producer {
       caliceahcalbifProducer::EventNumbering _eventNumberingPreference;
 
       unsigned m_run;
+      unsigned int m_evtnum;
       unsigned readout_delay;
       bool done;
       bool _TLUStarted;
@@ -284,6 +285,7 @@ void caliceahcalbifProducer::DoStartRun() {
    _stats= {0,0,0,0};
    _BORESent = false;
    _firstTriggerNumber = 0;
+   m_evtnum = 0;
    // raw file open
    if (_writeRaw) OpenRawFile(GetRunNumber(), _writerawfilename_timestamp);
 
@@ -836,26 +838,25 @@ void caliceahcalbifProducer::sendallevents(std::deque<eudaq::EventUP> & deqEvent
    while (deqEvent.size() > minimumsize) {
       //std::this_thread::sleep_for(std::chrono::seconds(1));
       std::lock_guard<std::mutex> lock(_deqEventAccessMutex); //minimal lock for pushing ne
-      if (deqEvent.front()) {
-         if (!_BORESent) {
-            deqEvent.front()->SetBORE();
-            _BORESent = true;
-            deqEvent.front()->SetTag("FirstROCStartTS", _stats.runStartTS << 5);
-            if (!_redirectedInputFileName.length()) {
-               deqEvent.front()->SetTag("FirmwareID", to_string(m_tlu->GetFirmwareVersion()));
-               deqEvent.front()->SetTag("BoardID", to_string(m_tlu->GetBoardID()));
-            }
+      if (!_BORESent) {
+         deqEvent.front()->SetBORE();
+         _BORESent = true;
+         deqEvent.front()->SetTag("FirstROCStartTS", _stats.runStartTS << 5);
+         if (!_redirectedInputFileName.length()) {
+            deqEvent.front()->SetTag("FirmwareID", to_string(m_tlu->GetFirmwareVersion()));
+            deqEvent.front()->SetTag("BoardID", to_string(m_tlu->GetBoardID()));
          }
-         if ((minimumsize == 0) && (deqEvent.size() == 1)) {
-            deqEvent.front()->SetEORE();
-            deqEvent.front()->SetTag("RunFirstROC", _firstStutterCycle);
-            deqEvent.front()->SetTag("RunFirstTriggerNumber", _firstTriggerNumber);
-         }
+      }
+      if ((minimumsize == 0) && (deqEvent.size() == 1)) {
+         deqEvent.front()->SetEORE();
+         deqEvent.front()->SetTag("RunFirstROC", _firstStutterCycle);
+         deqEvent.front()->SetTag("RunFirstTriggerNumber", _firstTriggerNumber);
+      }
 //         std::cout<<"DEBUG sending evt";
 //         deqEvent.front()->Print(std::cout,0);
-         SendEvent(std::move(deqEvent.front()));
-      }
+      SendEvent(std::move(deqEvent.front()));
       deqEvent.pop_front();
+      SetStatusTag("EventN",m_evtnum++);
    }
 }
 
