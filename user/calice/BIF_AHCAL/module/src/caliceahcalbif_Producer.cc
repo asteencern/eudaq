@@ -53,7 +53,6 @@ class caliceahcalbifProducer: public eudaq::Producer {
       caliceahcalbifProducer::EventNumbering _eventNumberingPreference;
 
       unsigned m_run;
-      unsigned int m_evtnum;
       unsigned readout_delay;
       bool done;
       bool _TLUStarted;
@@ -72,6 +71,7 @@ class caliceahcalbifProducer: public eudaq::Producer {
       bool _writerawfilename_timestamp; //whether to append timestamp to the raw file
       bool _word1WrittenPreviously; //word was already stored to raw file in previous processing
       int _ReadoutCycle; //current ReadoutCycle in the run
+      int _countRocFrom; //from which ReadOutCycle number should be counted. By default (_countRocFrom==0)the first ROC=0. This number will be added to ReadOutCycles_counted_from_0 and will make the ROC in the data
       uint64_t _lastTriggerTime; //Timestamp of last trigger. Used for filtering double trigger event
       int _consecutiveTriggerIgnorePeriod;
       uint64_t _acq_start_ts; //timestamp of last start acquisition (shutter on)
@@ -210,7 +210,7 @@ void caliceahcalbifProducer::DoConfigure() {
    if (!eventNumberingMode.compare("TIMESTAMP")) _eventNumberingPreference = caliceahcalbifProducer::EventNumbering::TIMESTAMP;
    std::cout << "Preferring event numbering type: \"" << eventNumberingMode << "\"" << std::endl;
    _consecutiveTriggerIgnorePeriod = param.Get("ConsecutiveTriggerIgnorePeriod", 0);
-
+   _countRocFrom = param.Get("CountRocFrom", 0);
    std::cout << "Configuring (" << param.Name() << ")..." << std::endl;
    if (m_tlu) m_tlu = nullptr;
    if (!_redirectedInputFileName.length()) {
@@ -285,7 +285,6 @@ void caliceahcalbifProducer::DoStartRun() {
    _stats= {0,0,0,0};
    _BORESent = false;
    _firstTriggerNumber = 0;
-   m_evtnum = 0;
    // raw file open
    if (_writeRaw) OpenRawFile(GetRunNumber(), _writerawfilename_timestamp);
 
@@ -726,10 +725,10 @@ void caliceahcalbifProducer::buildEudaqEventsROC(std::deque<eudaq::EventUP>& deq
    CycleEvent->AddBlock(1, s.c_str(), s.length());
    ev->SetTag("ROCStartTS", _acq_start_ts);
    ev->SetTimestamp(_acq_start_ts << 5, _acq_stop_ts << 5, false);
-   ev->SetTriggerN(_ReadoutCycle, false); //ROC is used as a trigger number
+   ev->SetTriggerN(_ReadoutCycle, false); //RAW ROC is used as a trigger number
    if (_eventNumberingPreference == EventNumbering::TIMESTAMP) ev->SetFlagTimestamp();
    if (_eventNumberingPreference == EventNumbering::TRIGGERNUMBER) ev->SetFlagTrigger();
-   ev->SetTag("ROC", _ReadoutCycle);
+   ev->SetTag("ROC", _ReadoutCycle + _countRocFrom);
    unsigned int times[2];
    struct timeval tv;
    ::gettimeofday(&tv, NULL);
@@ -787,7 +786,7 @@ void caliceahcalbifProducer::buildEudaqEventsTriggers(std::deque<eudaq::EventUP>
       ev->SetTriggerN(trig_number - _firstTriggerNumber, false);
       if (_eventNumberingPreference == EventNumbering::TIMESTAMP) ev->SetFlagTimestamp();
       if (_eventNumberingPreference == EventNumbering::TRIGGERNUMBER) ev->SetFlagTrigger();
-      ev->SetTag("ROC", _ReadoutCycle);
+      ev->SetTag("ROC", _ReadoutCycle+_countRocFrom);
       int bxid = (((int64_t) trig_ts - (int64_t) (_acq_start_ts << 5) - (int64_t) _firstBxidOffsetBins) / _bxidLengthBins);
       ev->SetTag("BXID", bxid);
 //      std::cout << "DEBUG: trig_ts=" << trig_ts << ", _acq_start_ts=" << _acq_start_ts << ", _firstBxidOffsetBins=" << _firstBxidOffsetBins
