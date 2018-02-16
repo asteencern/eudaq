@@ -141,10 +141,10 @@ void CaliceAhcalBifBxidDataCollector::DoReceive(eudaq::ConnectionSPC idx, eudaq:
       EUDAQ_WARN("Receive event fake");
       return;
    }
-   if (ev->GetTag("BXID", mc_bxid_invalid) == mc_bxid_invalid) {
-      EUDAQ_ERROR_STREAMOUT("Received event without BXID", std::cout, std::cerr);
-      return;
-   }
+//   if (ev->GetTag("BXID", mc_bxid_invalid) == mc_bxid_invalid) {
+//      EUDAQ_ERROR_STREAMOUT("Received event without BXID", std::cout, std::cerr);
+//      return;
+//   }
 
    std::string con_name = idx->GetName();
    if (con_name == mc_name_ahcal)
