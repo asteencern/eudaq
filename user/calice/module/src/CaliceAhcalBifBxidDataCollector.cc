@@ -315,7 +315,7 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
       if ((roc_hodoscope2 == processedRoc) && (bxid_hodoscope2 < processedBxid)) processedBxid = bxid_hodoscope2;
 
       std::cout << "Trying to put together event with ROC=" << processedRoc << " BXID=" << processedBxid;
-      std::cout << "\tAHCALROC=" << roc_ahcal << ",AHCALBXID=" << bxid_ahcal << ",BIFROC=" << roc_bif << ",BIFBXID=" << bxid_bif;
+      std::cout << "\tAHCALROC=" << roc_ahcal << ",AHCALBXID=" << bxid_ahcal << "\tBIFROC=" << roc_bif << ",BIFBXID=" << bxid_bif;
       std::cout << "\tH1ROC=" << roc_hodoscope1 << ",H1BXID=" << bxid_hodoscope1;
       std::cout << "\tH2ROC=" << roc_hodoscope2 << ",H2BXID=" << bxid_hodoscope2 << std::endl;
 
@@ -359,10 +359,10 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
          present_desytable = true;
       }
       m_thrown_incomplete += 1; //increase in case the loop is exit in following lines
-      if (m_evt_mandatory_ahcal && (!present_ahcal) && (!m_active_ahcal)) continue; //throw awway incomplete event
-      if (m_evt_mandatory_bif && (!present_bif) && (!m_active_bif)) continue; //throw awway incomplete event
-      if (m_evt_mandatory_hodoscope1 && (!present_hodoscope1) && (!m_active_hodoscope1)) continue; //throw awway incomplete event
-      if (m_evt_mandatory_hodoscope2 && (!present_hodoscope2) && (!m_active_hodoscope2)) continue; //throw awway incomplete event
+      if (m_evt_mandatory_ahcal && (!present_ahcal) && (m_active_ahcal)) continue; //throw awway incomplete event
+      if (m_evt_mandatory_bif && (!present_bif) && (m_active_bif)) continue; //throw awway incomplete event
+      if (m_evt_mandatory_hodoscope1 && (!present_hodoscope1) && (m_active_hodoscope1)) continue; //throw awway incomplete event
+      if (m_evt_mandatory_hodoscope2 && (!present_hodoscope2) && (m_active_hodoscope2)) continue; //throw awway incomplete event
       m_thrown_incomplete -= 1; //and decrease back.
       ev_sync->SetEventN(m_ev_n++);
 //      ev_sync->Print(std::cout);
