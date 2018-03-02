@@ -29,7 +29,7 @@ class CaliceAhcalBifBxidDataCollector: public eudaq::DataCollector {
 
       //correction factor to be added to the ROC tag. This can eliminate differences between starting ROC numbers in different producer - some can start from 1, some from 0
       int m_roc_offset_ahcal = 0;
-      int m_roc_offset_bif = 0;
+      int m_roc_offset_bif = 1;
       int m_roc_offset_hodoscope1 = 0;
       int m_roc_offset_hodoscope2 = 0;
 
