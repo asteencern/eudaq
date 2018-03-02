@@ -271,7 +271,7 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
          if (m_active_hodoscope1) return;
       } else {
          roc_hodoscope1 = m_que_hodoscope1.front()->GetTag("ROC", mc_roc_invalid);
-         bxid_bif = m_que_hodoscope1.front()->GetTag("BXID", mc_bxid_invalid);
+         bxid_hodoscope1 = m_que_hodoscope1.front()->GetTag("BXID", mc_bxid_invalid);
          if ((roc_hodoscope1 == mc_roc_invalid) || (bxid_hodoscope1 == mc_bxid_invalid)) {
             EUDAQ_WARN_STREAMOUT("event " + std::to_string(m_que_hodoscope1.front()->GetEventN()) +
                   " without ROC(" + std::to_string(roc_hodoscope1) +
@@ -287,7 +287,7 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
          if (m_active_hodoscope2) return;
       } else {
          roc_hodoscope2 = m_que_hodoscope2.front()->GetTag("ROC", mc_roc_invalid);
-         bxid_bif = m_que_hodoscope2.front()->GetTag("BXID", mc_bxid_invalid);
+         bxid_hodoscope2 = m_que_hodoscope2.front()->GetTag("BXID", mc_bxid_invalid);
          if ((roc_hodoscope2 == mc_roc_invalid) || (bxid_hodoscope2 == mc_bxid_invalid)) {
             EUDAQ_WARN_STREAMOUT("event " + std::to_string(m_que_hodoscope2.front()->GetEventN()) +
                   " without ROC(" + std::to_string(roc_hodoscope2) +
