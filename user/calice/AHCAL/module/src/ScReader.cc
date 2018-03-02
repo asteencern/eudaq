@@ -17,8 +17,8 @@ namespace eudaq {
 
    ScReader::ScReader(AHCALProducer *r) :
          AHCALReader(r), _runNo(-1), _buffer_inside_acquisition(false), _lastBuiltEventNr(0), _cycleNo(0),
-         //               _tempmode(false),
-         _trigID(0), _unfinishedPacketState(UnfinishedPacketStates::DONE), length(0) {
+               //               _tempmode(false),
+               _trigID(0), _unfinishedPacketState(UnfinishedPacketStates::DONE), length(0) {
    }
 
    ScReader::~ScReader() {
@@ -39,7 +39,7 @@ namespace eudaq {
             _lastBuiltEventNr = _producer->getGenerateTriggerIDFrom() - 1;
             break;
          case AHCALProducer::EventBuildingMode::ROC:
-         default:
+            default:
             _lastBuiltEventNr = -1;
             break;
       }
@@ -489,7 +489,7 @@ namespace eudaq {
    }
 
    void ScReader::buildValidatedBXIDEvents(std::deque<eudaq::EventUP> &EventQueue, bool dumpAll) {
-      int keptEventCount = dumpAll ? 0 : 3; //how many ROCs to keep in the data maps
+      int keptEventCount = dumpAll ? 0 : _producer->getKeepBuffered(); //how many ROCs to keep in the data maps
       //      keptEventCount = 100000;
       while (_LDAAsicData.size() > keptEventCount) { //at least 2 finished ROC
          int roc = _LDAAsicData.begin()->first; //_LDAAsicData.begin()->first;
@@ -594,7 +594,7 @@ namespace eudaq {
                      nev->ClearFlagBit(eudaq::Event::Flags::FLAG_TIME);
                      break;
                   case AHCALProducer::EventNumbering::TIMESTAMP:
-                  default:
+                     default:
                      nev->SetFlagBit(eudaq::Event::Flags::FLAG_TIME);
                      nev->ClearFlagBit(eudaq::Event::Flags::FLAG_TRIG);
                      break;
@@ -623,7 +623,7 @@ namespace eudaq {
    }
 
    void ScReader::buildBXIDEvents(std::deque<eudaq::EventUP> &EventQueue, bool dumpAll) {
-      int keptEventCount = dumpAll ? 0 : 3; //how many ROCs to keep in the data maps
+      int keptEventCount = dumpAll ? 0 : _producer->getKeepBuffered(); //how many ROCs to keep in the data maps
 //      keptEventCount = 100000;
       while (_LDAAsicData.size() > keptEventCount) { //at least 2 finished ROC
          int roc = _LDAAsicData.begin()->first; //_LDAAsicData.begin()->first;
@@ -717,7 +717,7 @@ namespace eudaq {
    }
 
    void ScReader::buildROCEvents(std::deque<eudaq::EventUP> &EventQueue, bool dumpAll) {
-      int keptEventCount = dumpAll ? 0 : 3; //how many ROCs to keep in the data maps
+      int keptEventCount = dumpAll ? 0 : _producer->getKeepBuffered(); //how many ROCs to keep in the data maps
       //      keptEventCount = 100000;
       while (_LDAAsicData.size() > keptEventCount) { //at least 2 finished ROC
 
@@ -785,7 +785,7 @@ namespace eudaq {
          std::cout << "dumping all remaining events. Size " << _LDAAsicData.size() << std::endl;
          //printLDAROCInfo(std::cout);
       }
-      int keptEventCount = dumpAll ? 0 : 3; //how many ROCs to keep in the data maps
+      int keptEventCount = dumpAll ? 0 : _producer->getKeepBuffered(); //how many ROCs to keep in the data maps
       while (_LDAAsicData.size() > keptEventCount) { //at least w finished ROCs
          int roc = _LDAAsicData.begin()->first;
          if (_LDATimestampData.count(roc)) {
@@ -824,7 +824,7 @@ namespace eudaq {
                      break;
                   }
                   case AHCALProducer::EventNumbering::TRIGGERID:
-                  default:
+                     default:
                      nev->SetTriggerN(trigid - _producer->getLdaTrigidOffset(), true);
                      if (!_producer->getIgnoreLdaTimestamps()) {
                         uint64_t ts_beg = _LDATimestampData[roc].TS_Triggers[i] - _producer->getAhcalbxidWidth();

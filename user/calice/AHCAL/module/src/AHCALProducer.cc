@@ -89,6 +89,7 @@ void AHCALProducer::DoConfigure() {
 
    _InsertDummyPackets = param.Get("InsertDummyPackets", 0);
    _DebugKeepBuffered = param.Get("DebugKeepBuffered", 0);
+   _KeepBuffered = param.Get("KeepBuffered", 10);
 
    string eventBuildingMode = param.Get("EventBuildingMode", "ROC");
    if (!eventBuildingMode.compare("ROC")) _eventBuildingMode = AHCALProducer::EventBuildingMode::ROC;
@@ -391,12 +392,12 @@ void AHCALProducer::RunLoop() {
       }
       if ((!_running) && (!_redirectedInputFileName.empty())) break; //stop came during read of a file. In this case exit before reaching the end of the file.
 #ifdef _WIN32
-      if (_redirectedInputFileName.empty()) {
-         size = recv(_fd, buf, bufsize, 0);
-      } else {
-         size = _redirectedInputFstream.read(buf, bufsize).gcount();
-         //std::cout << "DEBUG: read " << size << " Bytes" << std::endl;
-      }
+         if (_redirectedInputFileName.empty()) {
+            size = recv(_fd, buf, bufsize, 0);
+         } else {
+            size = _redirectedInputFstream.read(buf, bufsize).gcount();
+            //std::cout << "DEBUG: read " << size << " Bytes" << std::endl;
+         }
 #else
       size = ::read(_fd, buf, bufsize);   //blocking. Get released when the connection is closed from Labview
 #endif // _WIN32
@@ -485,5 +486,9 @@ int AHCALProducer::getIgnoreLdaTimestamps() const {
 
 int AHCALProducer::getMaxTrigidSkip() const {
    return _maxTrigidSkip;
+}
+
+int AHCALProducer::getKeepBuffered() const {
+   return _KeepBuffered;
 }
 

@@ -80,10 +80,11 @@ namespace eudaq {
          int getGenerateTriggerIDFrom() const;
          int getColoredTerminalMessages() const;
          int getIgnoreLdaTimestamps() const;
-      int getMaxTrigidSkip() const;
+         int getMaxTrigidSkip() const;
+         int getKeepBuffered() const;
 
          static const uint32_t m_id_factory = eudaq::cstr2hash("AHCALProducer");
-      private:
+         private:
          AHCALProducer::EventBuildingMode _eventBuildingMode;
          AHCALProducer::EventNumbering _eventNumberingPreference;
          int _LdaTrigidOffset; //LdaTrigidOffset to compensate trigger number differences between TLU (or other trigger number source) and LDA. Eudaq Event counting starts from this number and will be always subtracted from the eudaq event triggerid.
@@ -92,6 +93,7 @@ namespace eudaq {
          int _AHCALBXIDWidth; //length of the bxid in 25 ns steps
          int _InsertDummyPackets; //1=Put dummy packets to maintain an uninterrupted sequence of TriggerIDs. 0=don't inset anything
          int _DebugKeepBuffered; //1=keep events in buffer and don't send them to data collector
+         int _KeepBuffered; // how many events to keep in the buffer
          int _GenerateTriggerIDFrom; //sets from which triggerID number should be data generated (and filled with dummy triggers if necessary). Only works when insert_dummy_packets is enabled and in selected event building mode
          int _ColoredTerminalMessages; //1 for colored error worning and info messages
          int _IgnoreLdaTimestamps; //ignores the timestamp in the AHCAL LDA data stream
@@ -99,12 +101,12 @@ namespace eudaq {
          int _runNo;
          int _eventNo; //last sent event - for checking of correct event numbers sequence during sending events
 #ifdef _WIN32
-		 SOCKET _fd;
-		 std::ifstream _redirectedInputFstream;
+         SOCKET _fd;
+         std::ifstream _redirectedInputFstream;
 #else
          int _fd;
-#endif
-      int _maxTrigidSkip;
+         #endif
+         int _maxTrigidSkip;
 
          std::mutex _mufd;
 
