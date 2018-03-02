@@ -106,11 +106,12 @@ class CaliceEasirocProducer: public eudaq::Producer {
       int m_skipConOpen;      //skips opening of the connection
 };
 namespace {
-auto dummy0 = eudaq::Factory<eudaq::Producer>::
-      Register<CaliceEasirocProducer, const std::string&, const std::string&>(CaliceEasirocProducer::m_id_factory);
+   auto dummy0 = eudaq::Factory<eudaq::Producer>::
+         Register<CaliceEasirocProducer, const std::string&, const std::string&>(CaliceEasirocProducer::m_id_factory);
 }
 CaliceEasirocProducer::CaliceEasirocProducer(const std::string & name, const std::string & runcontrol)
-      : eudaq::Producer(name, runcontrol), m_exit_of_run(false) {
+:
+      eudaq::Producer(name, runcontrol), m_exit_of_run(false) {
    std::cout << "CaliceEasirocProducer created" << std::endl;
 }
 void CaliceEasirocProducer::DoInitialise() {
@@ -676,21 +677,21 @@ void CaliceEasirocProducer::udplog(Exchanger* exchange, Udpsetper* udpper, std::
          MUX = 199 - i / 2;
       }
       else
-         if (i % 2 == 1 && i < 16) {
-            MUX = 207 - i / 2;
-         }
-         else
-            if (i % 2 == 0 && i < 32 && i > 15) {
-               MUX = 55 - (i - 16) / 2;
-            }
-            else
-               if (i % 2 == 1 && i < 32 && i > 15) {
-                  MUX = 63 - (i - 16) / 2;
-               }
-               else
-                  if (i == 32) {
-                     MUX = 0;
-                  }
+      if (i % 2 == 1 && i < 16) {
+         MUX = 207 - i / 2;
+      }
+      else
+      if (i % 2 == 0 && i < 32 && i > 15) {
+         MUX = 55 - (i - 16) / 2;
+      }
+      else
+      if (i % 2 == 1 && i < 32 && i > 15) {
+         MUX = 63 - (i - 16) / 2;
+      }
+      else
+      if (i == 32) {
+         MUX = 0;
+      }
       exchange->udp_send(0x00000013, MUX);
       std::this_thread::sleep_for(std::chrono::microseconds(2000));
       //usleep(2000);
@@ -783,7 +784,10 @@ void CaliceEasirocProducer::Mainloop() {
    int EventNum = 0;
 
    if (!m_redirectedInputFileName.empty()) {
-      m_redirectedInput = std::ifstream(m_redirectedInputFileName, std::ifstream::binary);
+      //m_redirectedInput = std::ifstream(m_redirectedInputFileName, std::ifstream::binary);
+      //fix for a gcc <5, which doesn't allow to copy.
+      //This possibly breaks windows build?
+      m_redirectedInput.open(m_redirectedInputFileName, std::ifstream::in | std::ifstream::binary);
       if (m_redirectedInput) {
          m_redirectedInput.seekg(0, m_redirectedInput.end);
          int length = m_redirectedInput.tellg();
@@ -817,23 +821,22 @@ void CaliceEasirocProducer::Mainloop() {
    }
 
    if (m_redirectedInputFileName.empty()) {
-	   ADCStop(m_exchanger);
-	   EndADC = 1;
-	   int abort = 0;
-	   while (0 == ADCOneCycle_wHeader(m_exchanger, m_rawFile)) {
-		   std::this_thread::sleep_for(std::chrono::microseconds(10000));
-		   if (abort == 50) {
-			   ADCStop(m_exchanger);
-			   abort = 0;
-		   }
-		   std::cout << "dummy data" << std::endl;
-		   ++abort;
-	   }
-	   EndADC = 0;
-	   //ForceStop = 0;
-	   std::cout << "End ADC" << std::endl;
-	}
-
+      ADCStop(m_exchanger);
+      EndADC = 1;
+      int abort = 0;
+      while (0 == ADCOneCycle_wHeader(m_exchanger, m_rawFile)) {
+         std::this_thread::sleep_for(std::chrono::microseconds(10000));
+         if (abort == 50) {
+            ADCStop(m_exchanger);
+            abort = 0;
+         }
+         std::cout << "dummy data" << std::endl;
+         ++abort;
+      }
+      EndADC = 0;
+      //ForceStop = 0;
+      std::cout << "End ADC" << std::endl;
+   }
 
    if (m_writeRaw) {
       m_rawFile.close();
