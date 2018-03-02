@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTDIR="/home/calice/eudaq/conf/SCAN_20180213/generated/"
+OUTDIR="/home/calice/eudaq/conf/SCAN_20180213/"
 HOR_MINPOSITION=-353
 HOR_MAXPOSITION=337
 # HOR_MINPOSITION=-345
@@ -15,9 +15,10 @@ VERT_STEP=30
 SECONDS=1200
 EVENTS=15000
 
-rm ./generated/stage*
+rm ${OUTDIR}stage*
 
 cp stage.ini ${OUTDIR}stage.ini
+cp stage.conf ${OUTDIR}stage.conf.template
 
 PREVFILE="${OUTDIR}stage_final.conf"
 cat stage.conf |\
