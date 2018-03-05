@@ -314,10 +314,10 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
       if ((roc_hodoscope1 == processedRoc) && (bxid_hodoscope1 < processedBxid)) processedBxid = bxid_hodoscope1;
       if ((roc_hodoscope2 == processedRoc) && (bxid_hodoscope2 < processedBxid)) processedBxid = bxid_hodoscope2;
 
-      std::cout << "Trying to put together event with ROC=" << processedRoc << " BXID=" << processedBxid;
-      std::cout << "\tAHCALROC=" << roc_ahcal << ",AHCALBXID=" << bxid_ahcal << "\tBIFROC=" << roc_bif << ",BIFBXID=" << bxid_bif;
-      std::cout << "\tH1ROC=" << roc_hodoscope1 << ",H1BXID=" << bxid_hodoscope1;
-      std::cout << "\tH2ROC=" << roc_hodoscope2 << ",H2BXID=" << bxid_hodoscope2 << std::endl;
+      // std::cout << "Trying to put together event with ROC=" << processedRoc << " BXID=" << processedBxid;
+      // std::cout << "\tAHCALROC=" << roc_ahcal << ",AHCALBXID=" << bxid_ahcal << "\tBIFROC=" << roc_bif << ",BIFBXID=" << bxid_bif;
+      // std::cout << "\tH1ROC=" << roc_hodoscope1 << ",H1BXID=" << bxid_hodoscope1;
+      // std::cout << "\tH2ROC=" << roc_hodoscope2 << ",H2BXID=" << bxid_hodoscope2 << std::endl;
 
       auto ev_sync = eudaq::Event::MakeUnique("CaliceBxid");
       ev_sync->SetFlagPacket();
