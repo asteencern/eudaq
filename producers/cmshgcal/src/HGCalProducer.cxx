@@ -55,6 +55,7 @@ public:
 
  private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
+  int m_NOrms;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
   TriggerController *m_triggerController;
   TFile *m_outrootfile;
@@ -74,7 +75,9 @@ public:
   } m_state;
     
   std::ofstream m_rawFile;
-
+  std::string m_syncRPIAlias;
+  std::vector<std::string> m_rdoutRPIAliases;
+  
 public:
   bool checkCRC( const std::string & crcNodeName, ipbus::IpbusHwController *ptr )
   {
@@ -201,69 +204,20 @@ private:
   {
     std::cout << "Configuring: " << config.Name() << std::endl;
 
-
-    // Let's start the scripts needed to be run on RPIs
-
-
-    
-    EUDAQ_INFO("Starting sync_debug.exe on piS");
-
+    m_syncRPIAlias=config.Get("SyncBoardAlias", "piS");
+    EUDAQ_INFO("Starting sync_debug.exe on syncboard:"+m_syncRPIAlias);
     int executionStatus = -99; 
+    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
+    if (executionStatus != 0)
+      EUDAQ_WARN("Warning: unable to kill on syncboard. It's may be already dead...");
+    else
+      EUDAQ_INFO("Successfully killed on syncboard!");
+    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" nohup sudo /home/pi/SYNCH_BOARD/bin/sync_debug.exe 0 > log.log 2>&1& \" ").data());
+    if (executionStatus != 0)
+      EUDAQ_ERROR("Error: unable to run sync on "+m_syncRPIAlias);
+    else
+      EUDAQ_INFO("Successfully run sync on "+m_syncRPIAlias+"!");
     
-    executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
-
-    if (executionStatus != 0) {
-      EUDAQ_WARN("Error: unable to kill on piS. It's may be already dead...");
-    }
-    else {
-      EUDAQ_INFO("Successfully killed on piS!");
-    }
-
-    executionStatus = system("ssh -T piS \" nohup sudo /home/pi/SYNCH_BOARD/bin/sync_debug.exe 0 > log.log 2>&1& \" ");
-    
-    if (executionStatus != 0) {
-      EUDAQ_ERROR("Error: unable to run sync on piS");
-    }
-    else {
-      EUDAQ_INFO("Successfully run sync on piS!");
-    }
-
-
-    for (int pi=0; pi<3; pi++){
-      std::string rpiName = "none";
-      //if (pi==0) rpiName = "pi2";
-      if (pi==0) rpiName = "piRBDev";
-      if (pi==1) rpiName = "pi2";
-      if (pi==2) rpiName = "pi3";
-      //if (pi==3) rpiName = "pi4";
-    
-      EUDAQ_INFO("Starting new_rdout.exe on "+rpiName);
-
-      executionStatus = system(("ssh -T "+rpiName+" \" sudo killall new_rdout.exe \"").data());
-    
-      if (executionStatus != 0) {
-    	EUDAQ_WARN("Error: unable to kill on "+rpiName+". It's probably already dead...");
-      }
-      else {
-    	EUDAQ_INFO("Successfully killed on "+ rpiName);
-      }
-    
-      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
-    
-      if (executionStatus != 0) {
-    	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
-      }
-      else {
-    	EUDAQ_INFO("Successfully run exe on "+rpiName);
-      }
-    }
-
-    
-    
-    // End of scripts on RPIs
-    
-    // Do any configuration of the hardware here
-    // Configuration file values are accessible as config.Get(name, default)
     m_uhalLogLevel = config.Get("UhalLogLevel", 5);
     m_blockSize = config.Get("DataBlockSize",962);
     const int mode=config.Get("AcquisitionMode",0);
@@ -272,22 +226,31 @@ private:
     case 1 : m_acqmode = BEAMTEST; break;
     default : m_acqmode = DEBUG; break;
     }
-    const int n_orms = config.Get("NumberOfORMs",1);
-    std::ostringstream deviceName( std::ostringstream::ate );
-    for( int iorm=0; iorm<n_orms; iorm++ ){
-      deviceName.str(""); deviceName << config.Get("RDOUT_ORM_PrefixName","RDOUT_ORM") << iorm;
-      ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),deviceName.str());
+
+    m_NOrms = config.Get("NumberOfORMs",1);
+    std::ostringstream os( std::ostringstream::ate );
+    for( int iorm=0; iorm<m_NOrms; iorm++ ){
+      os.str("");os<<"RDoutBoardRPIAlias"<<iorm;
+      m_rdoutRPIAliases.push_back(config.Get(os.str(),"piRBDev"));
+      EUDAQ_INFO("Starting new_rdout.exe on "+m_rdoutRPIAliases.back());
+      executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" sudo killall new_rdout.exe \"").data());
+      if (executionStatus != 0)
+    	EUDAQ_WARN("Error: unable to kill on "+m_rdoutRPIAliases.back()+". It's probably already dead...");
+      else 
+    	EUDAQ_INFO("Successfully killed on "+m_rdoutRPIAliases.back());
+      executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
+      if (executionStatus != 0)
+    	EUDAQ_ERROR("Error: unable to run exe on "+m_rdoutRPIAliases.back());
+      else
+    	EUDAQ_INFO("Successfully run exe on "+m_rdoutRPIAliases.back());
+
+      os.str(""); os << config.Get("RDOUT_ORM_PrefixName","RDOUT_ORM") << iorm;
+      ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),os.str());
       m_rdout_orms.push_back( orm );
     }    
     m_triggerController = new TriggerController(m_rdout_orms);
 
-    // <-- Need to catch the errors here. What if there is now hardware connection, etc.
-    
-    m_state=STATE_CONFED;
-    // At the end, set the status that will be displayed in the Run Control.
-    SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
-
-    for( int iorm=0; iorm<n_orms; iorm++ ){
+    for( int iorm=0; iorm<m_NOrms; iorm++ ){
       std::cout << "ORM " << iorm << "\n"
 		<< "Check0 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check0") << "\t"
 		<< "Check1 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check1") << "\t"
@@ -310,10 +273,11 @@ private:
       const uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
       std::cout << "ORM " << iorm << "\t CONST1 = " << std::hex << cst1 << std::endl;
       
-      
       boost::this_thread::sleep( boost::posix_time::milliseconds(1000) );
     }    
 
+    m_state=STATE_CONFED;
+    SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
   }
 
   // This gets called whenever a new run is started
@@ -350,7 +314,6 @@ private:
     m_rawFile.write(reinterpret_cast<const char*>(&header[0]), sizeof(header));
     
     
-    //m_triggerController.startrunning( m_run, m_acqmode );
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
       (*it)->ResetTheData();
       while(1){
@@ -372,7 +335,6 @@ private:
     try {
       SetStatus(eudaq::Status::LVL_OK, "Stopping");
       m_triggerController->stopRun();
-      //      m_triggerThread.join();
       eudaq::mSleep(1000);
       m_state = STATE_GOTOSTOP;
       m_outrootfile->Write();
@@ -401,13 +363,14 @@ private:
     SetStatus(eudaq::Status::LVL_OK, "Terminating...");
     
     int executionStatus = 0;
-    executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
-    executionStatus = system("ssh -T piRBDev \" sudo killall new_rdout.exe \"");
-    executionStatus = system("ssh -T pi2 \" sudo killall new_rdout.exe \"");
-    executionStatus = system("ssh -T pi3 \" sudo killall new_rdout.exe \"");
-    //executionStatus = system("ssh -T pi4 \" sudo killall new_rdout.exe \"");
-    
-    
+    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
+    for(int iorm=0;iorm<m_NOrms; iorm++){
+      executionStatus = system(("ssh -T "+m_rdoutRPIAliases[iorm]+" \" sudo killall new_rdout.exe \"").data());
+      if (executionStatus != 0)
+	std::cout << "Error: unable to kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
+      else
+	std::cout << "Successfully kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
+    }
     m_triggerController->stopRun();
 
     m_state = STATE_GOTOTERM;

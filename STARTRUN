@@ -21,7 +21,7 @@ elif [[ $1 == "ahcal" ]]; then
 elif [[ $1 == "all" ]]; then
     script=./producers/cmshgcal/STARTRUN_ALL
 elif [[ $1 == "ped" ]]; then
-    script=./producers/cmshgcal/STARTRUN_tmp
+    script=./producers/cmshgcal/STARTRUN_PED
 else
     # default
     echo "This producer is not known to me: ${1}. Sorry."
@@ -29,6 +29,8 @@ else
 fi
 
 ln -s $script tmp.start
+
+chmod u+x tmp.start
 
 ./tmp.start
 
