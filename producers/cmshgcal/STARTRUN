@@ -5,7 +5,7 @@ export RCPORT=44000
 
 export HOSTIP=127.0.0.1
 export TLUIP=127.0.0.1
-export HOSTNAME=127.0.0.1
+export HOSTNAME=127.0.0.1 # This is for the run control to open the socket on the internal interface. By default it would use the external one.
 
 
 dt=`date +"%y_%b_%d_%Hh%Mm"`
