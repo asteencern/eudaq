@@ -217,18 +217,18 @@ private:
     std::cout << "Configuring: " << config.Name() << std::endl;
 
     m_syncRPIAlias=config.Get("SyncBoardAlias", "piS");
-    EUDAQ_INFO("Starting sync_debug.exe on syncboard:"+m_syncRPIAlias);
-    int executionStatus = 0; 
-    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
-    if (executionStatus != 0)
-      EUDAQ_WARN("Warning: unable to kill on syncboard. It's may be already dead...");
-    else
-      EUDAQ_INFO("Successfully killed on syncboard!");
-    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" nohup sudo /home/pi/SYNCH_BOARD/bin/sync_debug.exe 0 > log.log 2>&1& \" ").data());
-    if (executionStatus != 0)
-      EUDAQ_ERROR("Error: unable to run sync on "+m_syncRPIAlias);
-    else
-      EUDAQ_INFO("Successfully run sync on "+m_syncRPIAlias+"!");
+    // EUDAQ_INFO("Starting sync_debug.exe on syncboard:"+m_syncRPIAlias);
+    // int executionStatus = 0; 
+    // executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
+    // if (executionStatus != 0)
+    //   EUDAQ_WARN("Warning: unable to kill on syncboard. It's may be already dead...");
+    // else
+    //   EUDAQ_INFO("Successfully killed on syncboard!");
+    // executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" nohup sudo /home/pi/SYNCH_BOARD/bin/sync_debug.exe 0 > log.log 2>&1& \" ").data());
+    // if (executionStatus != 0)
+    //   EUDAQ_ERROR("Error: unable to run sync on "+m_syncRPIAlias);
+    // else
+    //   EUDAQ_INFO("Successfully run sync on "+m_syncRPIAlias+"!");
 
     m_rdoutMask = config.Get("RDoutMask",1);
     m_uhalLogLevel = config.Get("UhalLogLevel", 5);
@@ -249,19 +249,19 @@ private:
       bit = bit << 1;
       if(!activeSlot) continue;
       std::cout << "... found in the rdout mask " << std::endl;
-      os.str("");os<<"RDoutBoardRPIAlias"<<iorm;
-      m_rdoutRPIAliases.push_back(config.Get(os.str(),"piRBDev"));
-      EUDAQ_INFO("Starting new_rdout.exe on "+m_rdoutRPIAliases.back());
-      executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" sudo killall new_rdout.exe \"").data());
-      if (executionStatus != 0)
-      	EUDAQ_WARN("Error: unable to kill on "+m_rdoutRPIAliases.back()+". It's probably already dead...");
-      else 
-      	EUDAQ_INFO("Successfully killed on "+m_rdoutRPIAliases.back());
-      executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
-      if (executionStatus != 0)
-    	EUDAQ_ERROR("Error: unable to run exe on "+m_rdoutRPIAliases.back());
-      else
-    	EUDAQ_INFO("Successfully run exe on "+m_rdoutRPIAliases.back());
+      // os.str("");os<<"RDoutBoardRPIAlias"<<iorm;
+      // m_rdoutRPIAliases.push_back(config.Get(os.str(),"piRBDev"));
+      // EUDAQ_INFO("Starting new_rdout.exe on "+m_rdoutRPIAliases.back());
+      // executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" sudo killall new_rdout.exe \"").data());
+      // if (executionStatus != 0)
+      // 	EUDAQ_WARN("Error: unable to kill on "+m_rdoutRPIAliases.back()+". It's probably already dead...");
+      // else 
+      // 	EUDAQ_INFO("Successfully killed on "+m_rdoutRPIAliases.back());
+      // executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
+      // if (executionStatus != 0)
+      // 	EUDAQ_ERROR("Error: unable to run exe on "+m_rdoutRPIAliases.back());
+      // else
+      // 	EUDAQ_INFO("Successfully run exe on "+m_rdoutRPIAliases.back());
 
       os.str(""); os << "RDOUT_ORM" << iorm;
       ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),os.str());
@@ -382,18 +382,18 @@ private:
   virtual void OnTerminate() {
     SetStatus(eudaq::Status::LVL_OK, "Terminating...");
     
-    int executionStatus = 0;
-    executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
-    int bit=1;
-    for( int iorm=0; iorm<MAX_NUMBER_OF_ORM; iorm++ ){
-      if( !m_rdoutMask&bit ) continue;
-      bit = bit << 1;
-      executionStatus = system(("ssh -T "+m_rdoutRPIAliases[iorm]+" \" sudo killall new_rdout.exe \"").data());
-      if (executionStatus != 0)
-	std::cout << "Error: unable to kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
-      else
-	std::cout << "Successfully kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
-    }
+    // int executionStatus = 0;
+    // executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
+    // int bit=1;
+    // for( int iorm=0; iorm<MAX_NUMBER_OF_ORM; iorm++ ){
+    //   if( !m_rdoutMask&bit ) continue;
+    //   bit = bit << 1;
+    //   executionStatus = system(("ssh -T "+m_rdoutRPIAliases[iorm]+" \" sudo killall new_rdout.exe \"").data());
+    //   if (executionStatus != 0)
+    // 	std::cout << "Error: unable to kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
+    //   else
+    // 	std::cout << "Successfully kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;
+    // }
     m_triggerController->stopRun();
 
     m_state = STATE_GOTOTERM;
