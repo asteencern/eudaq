@@ -53,11 +53,15 @@ void AhcalHodoscopeDataCollector::DoConnect(eudaq::ConnectionSPC idx) {
       m_ahcal_conn_evts[idx].clear();
       return;
    }
+   if (idx->GetName().find("AHCAL") != std::string::npos) {
+      m_ahcal_conn_evts[idx].clear();
+      return;
+   }
    if (idx->GetName().find("odoscope") != std::string::npos) {
       m_hodoscope_conn_evts[idx].clear();
       return;
    }
-   std::cout << "#error: connection from unknown producer. The name should contain either Calice or Hodoscope string." << std::endl;
+   std::cout << "#error: connection from unknown producer. The name should contain AHCAL, Calice or Hodoscope string." << std::endl;
 }
 
 void AhcalHodoscopeDataCollector::DoDisconnect(eudaq::ConnectionSPC idx) {
