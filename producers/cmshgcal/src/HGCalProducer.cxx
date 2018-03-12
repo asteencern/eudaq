@@ -29,7 +29,7 @@
 #include "TriggerController.h"
 
 #define FORMAT_VERSION 1
-
+#define MAX_NUMBER_OF_ORM 16
 // A name to identify the raw data format of the events generated
 // Modify this to something appropriate for your producer.
 static const std::string EVENT_TYPE = "HexaBoard";
@@ -39,6 +39,10 @@ void readFIFOThread( ipbus::IpbusHwController* orm, uint32_t *blockSize)
 {
   orm->ReadDataBlock("FIFO",*blockSize);
 }
+// void readFIFOThread( ipbus::IpbusHwController* orm)
+// {
+//   orm->ReadDataBlock("FIFO");
+// }
 
 void startTriggerThread( TriggerController* trg_ctrl, uint32_t *run, ACQ_MODE* mode)
 {
@@ -50,19 +54,25 @@ class HGCalProducer : public eudaq::Producer {
 public:
   // The constructor must call the eudaq::Producer constructor with the name
   // and the runcontrol connection string, and initialize any member variables.
-  HGCalProducer(const std::string & name, const std::string & runcontrol)
-    : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), m_uhalLogLevel(5), m_blockSize(963), m_state(STATE_UNCONF){}
+  HGCalProducer(const std::string & name, const std::string & runcontrol) : eudaq::Producer(name, runcontrol)
+  {
+    m_run=m_ev=0;
+    m_uhalLogLevel=5;
+    m_blockSize=30787;
+    m_state=STATE_UNCONF;
+    m_rdoutMask=0x0;
+  }
 
  private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
-  int m_NOrms;
-  std::vector< ipbus::IpbusHwController* > m_rdout_orms;
-  TriggerController *m_triggerController;
-  TFile *m_outrootfile;
-  TH1D *m_hreadouttime;
-  TH1D *m_hwritertime;
+  uint16_t m_rdoutMask;
   ACQ_MODE m_acqmode;
+  
+  TriggerController *m_triggerController;
+  std::vector< ipbus::IpbusHwController* > m_rdout_orms;
   boost::thread m_triggerThread;
+  std::string m_syncRPIAlias;
+  std::vector<std::string> m_rdoutRPIAliases;
   enum DAQState {
     STATE_ERROR,
     STATE_UNCONF,
@@ -75,9 +85,11 @@ public:
   } m_state;
     
   std::ofstream m_rawFile;
-  std::string m_syncRPIAlias;
-  std::vector<std::string> m_rdoutRPIAliases;
   
+  TFile *m_outrootfile;
+  TH1D *m_hreadouttime;
+  TH1D *m_hwritertime;
+
 public:
   bool checkCRC( const std::string & crcNodeName, ipbus::IpbusHwController *ptr )
   {
@@ -132,6 +144,7 @@ public:
 	boost::thread threadVec[m_rdout_orms.size()];
 	
 	for( int i=0; i<(int)m_rdout_orms.size(); i++)
+	  //threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i]);
 	  threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i],&m_blockSize);
 	
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
@@ -168,7 +181,6 @@ public:
 	  
 	  // Write it into raw file:
           m_rawFile.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size()*sizeof(uint32_t));
-	  
 	}
 	times=timerWriter.elapsed();
 	m_hwritertime->Fill(times.wall/1e9);
@@ -206,7 +218,7 @@ private:
 
     m_syncRPIAlias=config.Get("SyncBoardAlias", "piS");
     EUDAQ_INFO("Starting sync_debug.exe on syncboard:"+m_syncRPIAlias);
-    int executionStatus = -99; 
+    int executionStatus = 0; 
     executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
     if (executionStatus != 0)
       EUDAQ_WARN("Warning: unable to kill on syncboard. It's may be already dead...");
@@ -217,7 +229,8 @@ private:
       EUDAQ_ERROR("Error: unable to run sync on "+m_syncRPIAlias);
     else
       EUDAQ_INFO("Successfully run sync on "+m_syncRPIAlias+"!");
-    
+
+    m_rdoutMask = config.Get("RDoutMask",1);
     m_uhalLogLevel = config.Get("UhalLogLevel", 5);
     m_blockSize = config.Get("DataBlockSize",962);
     const int mode=config.Get("AcquisitionMode",0);
@@ -227,58 +240,65 @@ private:
     default : m_acqmode = DEBUG; break;
     }
 
-    m_NOrms = config.Get("NumberOfORMs",1);
     std::ostringstream os( std::ostringstream::ate );
-    for( int iorm=0; iorm<m_NOrms; iorm++ ){
+    unsigned int bit=1;
+    std::cout << "m_rdoutMask = " << m_rdoutMask << std::endl;
+    for( int iorm=0; iorm<MAX_NUMBER_OF_ORM; iorm++ ){
+      std::cout << "iorm = " << iorm << "..." << std::endl;
+      bool activeSlot=(m_rdoutMask&bit);
+      bit = bit << 1;
+      if(!activeSlot) continue;
+      std::cout << "... found in the rdout mask " << std::endl;
       os.str("");os<<"RDoutBoardRPIAlias"<<iorm;
       m_rdoutRPIAliases.push_back(config.Get(os.str(),"piRBDev"));
       EUDAQ_INFO("Starting new_rdout.exe on "+m_rdoutRPIAliases.back());
       executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" sudo killall new_rdout.exe \"").data());
       if (executionStatus != 0)
-    	EUDAQ_WARN("Error: unable to kill on "+m_rdoutRPIAliases.back()+". It's probably already dead...");
+      	EUDAQ_WARN("Error: unable to kill on "+m_rdoutRPIAliases.back()+". It's probably already dead...");
       else 
-    	EUDAQ_INFO("Successfully killed on "+m_rdoutRPIAliases.back());
+      	EUDAQ_INFO("Successfully killed on "+m_rdoutRPIAliases.back());
       executionStatus = system(("ssh -T "+m_rdoutRPIAliases.back()+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
       if (executionStatus != 0)
     	EUDAQ_ERROR("Error: unable to run exe on "+m_rdoutRPIAliases.back());
       else
     	EUDAQ_INFO("Successfully run exe on "+m_rdoutRPIAliases.back());
 
-      os.str(""); os << config.Get("RDOUT_ORM_PrefixName","RDOUT_ORM") << iorm;
+      os.str(""); os << "RDOUT_ORM" << iorm;
       ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),os.str());
       m_rdout_orms.push_back( orm );
     }    
     m_triggerController = new TriggerController(m_rdout_orms);
 
-    for( int iorm=0; iorm<m_NOrms; iorm++ ){
-      std::cout << "ORM " << iorm << "\n"
-		<< "Check0 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check0") << "\t"
-		<< "Check1 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check1") << "\t"
-		<< "Check2 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check2") << "\t"
-		<< "Check3 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check3") << "\t"
-		<< "Check4 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check4") << "\t"
-		<< "Check5 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check5") << "\t"
-		<< "Check6 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check6") << "\n"
-		<< "Check31 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check31") << "\t"
-		<< "Check32 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check32") << "\t"
-		<< "Check33 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check33") << "\t"
-		<< "Check34 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check34") << "\t"
-		<< "Check35 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check35") << "\t"
-		<< "Check36 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check36") << std::endl;
-      
-      const uint32_t mask=m_rdout_orms[iorm]->ReadRegister("SKIROC_MASK");
-      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << std::endl;
-      const uint32_t cst0=m_rdout_orms[iorm]->ReadRegister("CONSTANT0");
-      std::cout << "ORM " << iorm << "\t CONST0 = " << std::hex << cst0 << std::endl;
-      const uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
-      std::cout << "ORM " << iorm << "\t CONST1 = " << std::hex << cst1 << std::endl;
-      
+    for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+      std::string ormId=(*it)->getInterface()->id();
+      std::cout << "ORM " << ormId << "\n"
+    		<< "Check0 = " << std::hex << (*it)->ReadRegister("check0") << "\t"
+    		<< "Check1 = " << std::hex << (*it)->ReadRegister("check1") << "\t"
+    		<< "Check2 = " << std::hex << (*it)->ReadRegister("check2") << "\t"
+    		<< "Check3 = " << std::hex << (*it)->ReadRegister("check3") << "\t"
+    		<< "Check4 = " << std::hex << (*it)->ReadRegister("check4") << "\t"
+    		<< "Check5 = " << std::hex << (*it)->ReadRegister("check5") << "\t"
+    		<< "Check6 = " << std::hex << (*it)->ReadRegister("check6") << "\n"
+    		<< "Check31 = " << std::dec << (*it)->ReadRegister("check31") << "\t"
+    		<< "Check32 = " << std::dec << (*it)->ReadRegister("check32") << "\t"
+    		<< "Check33 = " << std::dec << (*it)->ReadRegister("check33") << "\t"
+    		<< "Check34 = " << std::dec << (*it)->ReadRegister("check34") << "\t"
+    		<< "Check35 = " << std::dec << (*it)->ReadRegister("check35") << "\t"
+    		<< "Check36 = " << std::dec << (*it)->ReadRegister("check36") << std::endl;
+    
+      const uint32_t mask=(*it)->ReadRegister("SKIROC_MASK");
+      std::cout << "ORM " << ormId << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << std::endl;
+      const uint32_t cst0=(*it)->ReadRegister("CONSTANT0");
+      std::cout << "ORM " << ormId << "\t CONST0 = " << std::hex << cst0 << std::endl;
+      const uint32_t cst1=(*it)->ReadRegister("CONSTANT1");
+      std::cout << "ORM " << ormId << "\t CONST1 = " << std::hex << cst1 << std::endl;
+    
       boost::this_thread::sleep( boost::posix_time::milliseconds(1000) );
     }    
 
     m_state=STATE_CONFED;
     SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
-  }
+}
 
   // This gets called whenever a new run is started
   // It receives the new run number as a parameter
@@ -364,7 +384,10 @@ private:
     
     int executionStatus = 0;
     executionStatus = system(("ssh -T "+m_syncRPIAlias+" \" sudo killall sync_debug.exe \"").data());
-    for(int iorm=0;iorm<m_NOrms; iorm++){
+    int bit=1;
+    for( int iorm=0; iorm<MAX_NUMBER_OF_ORM; iorm++ ){
+      if( !m_rdoutMask&bit ) continue;
+      bit = bit << 1;
       executionStatus = system(("ssh -T "+m_rdoutRPIAliases[iorm]+" \" sudo killall new_rdout.exe \"").data());
       if (executionStatus != 0)
 	std::cout << "Error: unable to kill new_rdout.exe on " << m_rdoutRPIAliases[iorm] << std::endl;

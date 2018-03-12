@@ -7,6 +7,15 @@ namespace ipbus{
     m_hw = new uhal::HwInterface( manager.getDevice( deviceName ) );
   }
 
+  IpbusHwController::IpbusHwController( const std::string &connectionFile, const std::string &deviceName, unsigned int blockSize ){
+    uhal::ConnectionManager manager( connectionFile );
+    m_hw = new uhal::HwInterface( manager.getDevice( deviceName ) );
+    m_blockSize = blockSize;
+    std::cout << "Ipbus m_blockSize = " << std::dec << m_blockSize << std::endl;
+    for( unsigned int i=0; i<m_blockSize; i++ )
+      m_data.push_back(0);
+  }
+
   IpbusHwController::~IpbusHwController()
   {
     m_data.clear();
@@ -45,6 +54,22 @@ namespace ipbus{
       uhal::ValVector<uint32_t> data = m_hw->getNode(name.c_str()).readBlock(blkSize);
       m_hw->dispatch();
       if(data.valid()) {
+  	CastTheData( data );
+      } else {
+  	std::cout << "Error reading " << name << std::endl;
+  	return ;
+      }
+    } catch (...) {
+      return;
+    }
+  }
+  
+  void IpbusHwController::ReadDataBlock( const std::string &name )
+  {
+    try {
+      uhal::ValVector<uint32_t> data = m_hw->getNode(name.c_str()).readBlock(m_blockSize);
+      m_hw->dispatch();
+      if(data.valid()) {
 	CastTheData( data );
       } else {
 	std::cout << "Error reading " << name << std::endl;
@@ -54,7 +79,7 @@ namespace ipbus{
       return;
     }
   }
-  
+
   void IpbusHwController::SetUhalLogLevel(unsigned char lvl){
     switch(lvl){
     case 0:
@@ -83,10 +108,13 @@ namespace ipbus{
     }
   }
   
-void IpbusHwController::CastTheData(const uhal::ValVector<uint32_t> &data)
-{
-  for( uhal::ValVector<uint32_t>::const_iterator cit=data.begin(); cit!=data.end(); ++cit )
-    m_data.push_back(*cit);
+  void IpbusHwController::CastTheData(const uhal::ValVector<uint32_t> &data)
+  {
+    for( uhal::ValVector<uint32_t>::const_iterator cit=data.begin(); cit!=data.end(); ++cit )
+      m_data.push_back(*cit);
+    //std::cout << "\t data.size() = " << data.size() << std::endl;
+    //for( unsigned int i=0; i<data.size(); i++ )
+    //  m_data[i]=data[i];
   }
 
   void IpbusHwController::ResetTheData()
