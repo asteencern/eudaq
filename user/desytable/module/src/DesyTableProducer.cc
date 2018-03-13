@@ -225,6 +225,8 @@ void DesyTableProducer::RunLoop() {
          ev->SetTag("POS_H_MM", std::to_string(h_mm));
          ev->SetTag("POS_V_MM", std::to_string(v_mm));
          SendEvent(std::move(ev));
+         SetStatusTag("Y",std::to_string(v_mm));
+         SetStatusTag("X",std::to_string(h_mm));
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
    }

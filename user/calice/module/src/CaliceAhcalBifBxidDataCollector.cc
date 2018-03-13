@@ -201,9 +201,14 @@ inline void CaliceAhcalBifBxidDataCollector::BuildEvent_bxid() {
 //         // std::cout<<"offset "<< m_ts_offset_cal2bif <<std::endl;
 //      }
 //   }
-   std::lock_guard<std::mutex> lock(m_mutex);//only 1 process should be allowed to make events
+   std::lock_guard<std::mutex> lock(m_mutex); //only 1 process should be allowed to make events
    while (true) {
-      if (std::chrono::system_clock::now() - lastprinttime > std::chrono::milliseconds(1000)) {
+      SetStatusTag("Queue", std::string("(") + std::to_string(m_que_ahcal.size())
+            + "," + std::to_string(m_que_bif.size())
+            + "," + std::to_string(m_que_hodoscope1.size())
+            + "," + std::to_string(m_que_hodoscope2.size())
+            + "," + std::to_string(m_que_desytable.size()) + ")");
+      if (std::chrono::system_clock::now() - lastprinttime > std::chrono::milliseconds(5000)) {
          lastprinttime = std::chrono::system_clock::now();
          std::cout << "Queue sizes: AHCAL: " << m_que_ahcal.size();
          std::cout << " BIF: " << m_que_bif.size();
