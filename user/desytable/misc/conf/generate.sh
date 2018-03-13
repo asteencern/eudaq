@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTDIR="/home/calice/eudaq/conf/SCAN_20180213/"
+OUTDIR="/home/calice/eudaq/conf/SCAN_20180313/"
 HOR_MINPOSITION=-353
 HOR_MAXPOSITION=337
 # HOR_MINPOSITION=-345

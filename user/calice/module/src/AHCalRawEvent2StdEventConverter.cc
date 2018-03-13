@@ -8,7 +8,7 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
-#define planeCount 6
+#define planeCount 5
 #define pedestalLimit 300
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
@@ -46,22 +46,22 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
 	{47, std::make_tuple(0, 0, 6) },
 	{48, std::make_tuple(0, 0, 0) },
 
-	{129, std::make_tuple(1, 18, 18) },
-	{130, std::make_tuple(1, 18, 12) },
-	{131, std::make_tuple(1, 12, 18) },
-	{132, std::make_tuple(1, 12, 12) },
-	{133, std::make_tuple(1, 18, 6) },
-	{134, std::make_tuple(1, 18, 0) },
-	{135, std::make_tuple(1, 12, 6) },
-	{136, std::make_tuple(1, 12, 0) },
-	{137, std::make_tuple(1, 6, 18) },
-	{138, std::make_tuple(1, 6, 12) },
-	{139, std::make_tuple(1, 0, 18) },
-	{140, std::make_tuple(1, 0, 12) },
-	{141, std::make_tuple(1, 6, 6) },
-	{142, std::make_tuple(1, 6, 0) },
-	{143, std::make_tuple(1, 0, 6) },
-	{144, std::make_tuple(1, 0, 0) },
+	{209, std::make_tuple(1, 18, 18) },
+	{210, std::make_tuple(1, 18, 12) },
+	{211, std::make_tuple(1, 12, 18) },
+	{212, std::make_tuple(1, 12, 12) },
+	{213, std::make_tuple(1, 18, 6) },
+	{214, std::make_tuple(1, 18, 0) },
+	{215, std::make_tuple(1, 12, 6) },
+	{216, std::make_tuple(1, 12, 0) },
+	{217, std::make_tuple(1, 6, 18) },
+	{218, std::make_tuple(1, 6, 12) },
+	{219, std::make_tuple(1, 0, 18) },
+	{220, std::make_tuple(1, 0, 12) },
+	{221, std::make_tuple(1, 6, 6) },
+	{222, std::make_tuple(1, 6, 0) },
+	{223, std::make_tuple(1, 0, 6) },
+	{224, std::make_tuple(1, 0, 0) },
 
 	{241, std::make_tuple(2, 18, 18) },
 	{242, std::make_tuple(2, 18, 12) },
@@ -113,24 +113,6 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
 	{30, std::make_tuple(4, 6, 0) },
 	{31, std::make_tuple(4, 0, 6) },
 	{32, std::make_tuple(4, 0, 0) },
-
-	{225, std::make_tuple(5, 18, 18) },
-	{226, std::make_tuple(5, 18, 12) },
-	{227, std::make_tuple(5, 12, 18) },
-	{228, std::make_tuple(5, 12, 12) },
-	{229, std::make_tuple(5, 18, 6) },
-	{230, std::make_tuple(5, 18, 0) },
-	{231, std::make_tuple(5, 12, 6) },
-	{232, std::make_tuple(5, 12, 0) },
-	{233, std::make_tuple(5, 6, 18) },
-	{234, std::make_tuple(5, 6, 12) },
-	{235, std::make_tuple(5, 0, 18) },
-	{236, std::make_tuple(5, 0, 12) },
-	{237, std::make_tuple(5, 6, 6) },
-	{238, std::make_tuple(5, 6, 0) },
-	{239, std::make_tuple(5, 0, 6) },
-	{240, std::make_tuple(5, 0, 0) }
-
       };
 
 //      const int planeCount = 2;
