@@ -336,15 +336,18 @@ namespace eudaq {
 //            }
 //            //
 
-            if (!(status & 0x40)) {
+            if (!(status & 0x40)) {  //cd cd 0c 00 54 00 0b 08 02 20 02 cc 0f 0f 0e 00 03 00 00 00 00 00
                //We'll drop non-ASIC data packet;
-               if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
-               std::cout << "ERROR: unexpected packet type 0x" << to_hex(status) << ", erasing " << length << " and " << e_sizeLdaHeader << endl;
-               for (int i = 0; i < length + e_sizeLdaHeader; ++i) {
-                  cout << " " << to_hex(buf[i], 2);
+               if (!((length == 12) && (status == 0x20))) {
+                  //but no warning is necessary for END-OF-READOUT packets
+                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
+                  std::cout << "ERROR: unexpected packet type 0x" << to_hex(status) << ", erasing " << length << " and " << e_sizeLdaHeader << endl;
+                  for (int i = 0; i < length + e_sizeLdaHeader; ++i) {
+                     cout << " " << to_hex(buf[i], 2);
+                  }
+                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+                  std::cout << std::endl;
                }
-               if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
-               std::cout << std::endl;
                buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
                continue;
             }
@@ -907,27 +910,22 @@ namespace eudaq {
    void ScReader::readAHCALData(std::deque<char> &buf, std::map<int, std::vector<std::vector<int> > >& AHCALData) {
 //AHCALData[_cycleNo];
       unsigned int LDA_Header_cycle = (unsigned char) buf[4]; //from LDA packet header - 8 bits only!
-      int8_t cycle_difference = LDA_Header_cycle - (_cycleNo & 0xFF);
-      if (cycle_difference == -1) {      //received a data from previous ROC. should not happen
-         cout << "Received data from previus ROC in run" << _runNo << ". Global ROC=" << _cycleNo << " (" << _cycleNo % 256 << " modulo 256), received="
+      auto old_cycleNo = _cycleNo;
+      _cycleNo = updateCntModulo(_cycleNo, LDA_Header_cycle, 8, _producer->getMaxRocJump()); //update the 32 bit counter with 8bit counter
+      int8_t cycle_difference = _cycleNo - old_cycleNo; //LDA_Header_cycle - (old_cycleNo & 0xFF);
+      if (cycle_difference < (0 - _producer->getMaxRocJump())) {      //received a data from previous ROC. should not happen
+         cout << "Received data from much older ROC in run " << _runNo << ". Global ROC=" << _cycleNo << " (" << _cycleNo % 256 << " modulo 256), received="
                << LDA_Header_cycle << endl;
          EUDAQ_EXTRA(
-               "Received data from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo) + " (" + to_string(_cycleNo % 256)
+               "Received data from much older ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo) + " (" + to_string(_cycleNo % 256)
                      + " modulo 256), received=" + to_string(LDA_Header_cycle));
-         _cycleNo--;
       }
-
-      if (cycle_difference == 1) { //next readout cycle data (or trigger outside ROC)
-         _cycleNo++;
-      }
-
-      if (cycle_difference > 1) {
-//really bad data corruption
+      if (cycle_difference > _producer->getMaxRocJump()) {
+         _cycleNo = old_cycleNo;
          cout << "ERROR: Jump in run " << _runNo << " in data readoutcycle by " << to_string((int) cycle_difference) << "in ROC " << _cycleNo << endl;
          EUDAQ_ERROR("Jump in run " + to_string(_runNo) + "in data readoutcycle by " + to_string((int )cycle_difference) + "in ROC " + to_string(_cycleNo));
-         if (cycle_difference < 20) _cycleNo += cycle_difference; //we compensate only small difference
+         //         if (cycle_difference < 20) _cycleNo += cycle_difference; //we compensate only small difference
       }
-
 //data from the readoutcycle.
       std::vector<std::vector<int> >& readoutCycle = AHCALData.insert( { _cycleNo, std::vector<std::vector<int> >() }).first->second;
 
@@ -951,12 +949,16 @@ namespace eudaq {
       }
 
       int chipId = (unsigned char) it[length - 3] * 256 + (unsigned char) it[length - 4];
-
       const int NChannel = 36;
       int nscai = (length - 8) / (NChannel * 4 + 2);
-
+      uint8_t difId = it[6];
+      uint8_t chipIndex = it[4];      //only for debugging
+      uint8_t roChain = it[5];      //only for debugging
+      //      std::cout << "Chipid=" << chipId << ", difID=" << (unsigned int) difId << ", chipIndex=" << (unsigned int) chipIndex << ", rochain="
+//            << (unsigned int) roChain << std::endl;
+      chipId = ((chipId + _producer->getChipidAddBeforeMasking()) & (1 << _producer->getChipidKeepBits()) - 1) + _producer->getChipidAddAfterMasking();
+      if (_producer->getAppendDifidToChipidBitPosition() > 0) chipId = chipId + (((unsigned int) difId) << _producer->getAppendDifidToChipidBitPosition()); //ADD the DIFID to the CHIPID
       it += 8;
-
       for (short tr = 0; tr < nscai; tr++) {
 // binary data: 128 words
          vector<unsigned short> adc, tdc;
@@ -1003,12 +1005,14 @@ namespace eudaq {
       unsigned int LDA_Header_cycle = (unsigned char) buf[4]; //from LDA packet header - 8 bits only!
       unsigned int LDA_cycle = _cycleNo; //copy from the global readout cycle.
 
+      LDA_cycle = updateCntModulo(LDA_cycle, LDA_Header_cycle, 8, 127); //TODO _producer->getMaxRocJump()
       // std::cout << "DEBUG: processing TS from LDA_header_cycle " << LDA_Header_cycle << std::endl;
 
       if ((!_buffer_inside_acquisition) && (TStype == C_TSTYPE_TRIGID_INC)) {
          //cout << "WARNING ScReader: Trigger is outside acquisition! Cycle " << LDA_cycle << endl;
          //         std::cout << "!";
-         LDA_Header_cycle--;
+         LDA_cycle--; //fix, that cycle is incremented outside the acquisition by the stop command
+         LDA_Header_cycle--; //fix, that cycle is incremented outside the acquisition by the stop command
          _RunTimesStatistics.triggers_outside_roc++;
          //uncomment if want to ignore trigger information from outside of ROC
          //buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
@@ -1022,10 +1026,11 @@ namespace eudaq {
       // during the start acquisition event is lower by 1. This is compensated internally in the LDA and the ROC value in
       // the header is already incremented by 1 for start, stop and trigger and no further operation in DAQ is needed.
       if (((TStype == C_TSTYPE_START_ACQ) || (TStype == C_TSTYPE_STOP_ACQ) || (TStype == C_TSTYPE_TRIGID_INC))) {
-         // std::cout << "DEBUG: Raw LDA timestamp: ROC:" << (int) LDA_Header_cycle << " type:" << (int) TStype << std::endl;
+         //std::cout << "DEBUG: Raw LDA timestamp: ROC:" << _cycleNo << "(" << (int) LDA_cycle << "," << LDA_Header_cycle << ") type:" << (int) TStype << std::endl;
 
          //At first we have to get to a correct LDA cycle. The packet contains only least 8 bits of the cycle number
-         int8_t cycle_difference = LDA_Header_cycle - (LDA_cycle & 0xFF);
+         //int8_t cycle_difference = LDA_Header_cycle - (LDA_cycle & 0xFF);
+         int cycle_difference = LDA_cycle - _cycleNo;
 
          if (cycle_difference == -1) {      //received a data from previous ROC. should not happen
             cout << "WARNING: Received a timestamp from previus ROC in run" << _runNo << ". Global ROC=" << _cycleNo << " (" << _cycleNo % 256
@@ -1033,21 +1038,21 @@ namespace eudaq {
             EUDAQ_EXTRA(
                   "Received a timestamp from previus ROC in run " + to_string(_runNo) + ". Global ROC=" + to_string(_cycleNo) + " (" + to_string(_cycleNo % 256)
                         + " modulo 256), received=" + to_string((int )LDA_Header_cycle));
-            LDA_cycle--;
+            //            LDA_cycle--;
          }
+//
+//         if (cycle_difference == 1) { //next readout cycle data (or trigger outside ROC)
+//            LDA_cycle++;
+//         }
 
-         if (cycle_difference == 1) { //next readout cycle data (or trigger outside ROC)
-            LDA_cycle++;
-         }
-
-         if (cycle_difference > 1) {
+         if ((cycle_difference > _producer->getMaxRocJump()) || (cycle_difference < (0 - _producer->getMaxRocJump()))) {
             //really bad data corruption
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
             cout << "ERROR: Jump in run " << _runNo << " in TS readoutcycle by " << to_string((int) cycle_difference) << " in ROC " << LDA_cycle << endl;
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
             EUDAQ_ERROR(
                   "ERROR: Jump in run " + to_string(_runNo) + "in TS readoutcycle by " + to_string((int )cycle_difference) + "in ROC " + to_string(LDA_cycle));
-            if (cycle_difference < 20) LDA_cycle += cycle_difference; //we compensate only small difference
+            //            if (cycle_difference < 20) LDA_cycle += cycle_difference; //we compensate only small difference
          }
          //std::cout << "DEBUG: processing TS from LDA cycle after correction " << LDA_cycle << std::endl;
          LDATimeData & currentROCData = LDATimestamps.insert( { LDA_cycle, LDATimeData() }).first->second;         //uses the existing one or creates new
@@ -1104,7 +1109,7 @@ namespace eudaq {
             return;
          }
 
-         if (TStype == C_TSTYPE_TRIGID_INC) {
+         if (TStype == C_TSTYPE_TRIGID_INC) { //TODO
             uint16_t rawTrigID = ((uint16_t) ((unsigned char) buf[16])) | (((uint16_t) ((unsigned char) buf[17])) << 8);
 
             int16_t trigIDdifference = rawTrigID - (_trigID & 0xFFFF);
@@ -1295,4 +1300,14 @@ unsigned int ScReader::getCycleNo() const {
 
 unsigned int ScReader::getTrigId() const {
    return _trigID;
+}
+
+int ScReader::updateCntModulo(const int oldCnt, const int newCntModulo, const int bits, const int maxBack) {
+   int newvalue = oldCnt - maxBack;
+   unsigned int mask = (1 << bits) - 1;
+   if ((newvalue & mask) > (newCntModulo & mask)) {
+      newvalue += (1 << bits);
+   }
+   newvalue = (newvalue & (~mask)) | (newCntModulo & mask);
+   return newvalue;
 }

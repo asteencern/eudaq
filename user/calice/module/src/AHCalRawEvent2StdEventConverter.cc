@@ -8,8 +8,8 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
-#define planeCount 5
-#define pedestalLimit 300
+#define planeCount 40
+#define pedestalLimit 500
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
    public:
@@ -20,102 +20,33 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
       int getPlaneNumberFromCHIPID(int chipid) const;
       int getXcoordFromChipChannel(int chipid, int channelNr) const;
       int getYcoordFromChipChannel(int chipid, int channelNr) const;
-      const std::map<int, std::tuple<int, int, int>> mapping = { //chipid to tuple: layer, xcoordinate, ycoordinate
-	//layer 1: single HBU
-	//                  { 185, std::make_tuple(0, 18, 18) },
-	//                  { 186, std::make_tuple(0, 18, 12) },
-	//                  { 187, std::make_tuple(0, 12, 18) },
-	//                   { 188, std::make_tuple(0, 12, 12) },
-	//layer 10: former layer 12 - full HBU
-	//shell script for big layer:
-	//chip0=129 ; layer=1 ; for i in `seq 0 15` ; do echo "{"`expr ${i} + ${chip0}`", std::make_tuple("${layer}", "`expr 18 - \( ${i} / 8 \) \* 12 - \( ${i} / 2 \) \% 2 \* 6`", "`expr 18 - \( ${i} \% 8 \) / 4 \* 12 - ${i} \% 2 \* 6`") }," ; done
+      const std::map<int, std::tuple<int, int>> mapping = { //chipid to tuple: layer, xcoordinate, ycoordinate
+            //layer 1: single HBU
+            //                  { 185, std::make_tuple(0, 18, 18) },
+            //                  { 186, std::make_tuple(0, 18, 12) },
+            //                  { 187, std::make_tuple(0, 12, 18) },
+            //                   { 188, std::make_tuple(0, 12, 12) },
+            //layer 10: former layer 12 - full HBU
+            //shell script for big layer:
+            //chip0=129 ; layer=1 ; for i in `seq 0 15` ; do echo "{"`expr ${i} + ${chip0}`", std::make_tuple("${layer}", "`expr 18 - \( ${i} / 8 \) \* 12 - \( ${i} / 2 \) \% 2 \* 6`", "`expr 18 - \( ${i} \% 8 \) / 4 \* 12 - ${i} \% 2 \* 6`") }," ; done
 
-	{129, std::make_tuple(0, 18, 18) },
-	{130, std::make_tuple(0, 18, 12) },
-	{131, std::make_tuple(0, 12, 18) },
-	{132, std::make_tuple(0, 12, 12) },
-	{133, std::make_tuple(0, 18, 6) },
-	{134, std::make_tuple(0, 18, 0) },
-	{135, std::make_tuple(0, 12, 6) },
-	{136, std::make_tuple(0, 12, 0) },
-	{137, std::make_tuple(0, 6, 18) },
-	{138, std::make_tuple(0, 6, 12) },
-	{139, std::make_tuple(0, 0, 18) },
-	{140, std::make_tuple(0, 0, 12) },
-	{141, std::make_tuple(0, 6, 6) },
-	{142, std::make_tuple(0, 6, 0) },
-	{143, std::make_tuple(0, 0, 6) },
-	{144, std::make_tuple(0, 0, 0) },
-
-	{145, std::make_tuple(1, 18, 18) },
-	{146, std::make_tuple(1, 18, 12) },
-	{147, std::make_tuple(1, 12, 18) },
-	{148, std::make_tuple(1, 12, 12) },
-	{149, std::make_tuple(1, 18, 6) },
-	{150, std::make_tuple(1, 18, 0) },
-	{151, std::make_tuple(1, 12, 6) },
-	{152, std::make_tuple(1, 12, 0) },
-	{153, std::make_tuple(1, 6, 18) },
-	{154, std::make_tuple(1, 6, 12) },
-	{155, std::make_tuple(1, 0, 18) },
-	{156, std::make_tuple(1, 0, 12) },
-	{157, std::make_tuple(1, 6, 6) },
-	{158, std::make_tuple(1, 6, 0) },
-	{159, std::make_tuple(1, 0, 6) },
-	{160, std::make_tuple(1, 0, 0) },
-
-	{241, std::make_tuple(2, 18, 18) },
-	{242, std::make_tuple(2, 18, 12) },
-	{243, std::make_tuple(2, 12, 18) },
-	{244, std::make_tuple(2, 12, 12) },
-	{245, std::make_tuple(2, 18, 6) },
-	{246, std::make_tuple(2, 18, 0) },
-	{247, std::make_tuple(2, 12, 6) },
-	{248, std::make_tuple(2, 12, 0) },
-	{249, std::make_tuple(2, 6, 18) },
-	{250, std::make_tuple(2, 6, 12) },
-	{251, std::make_tuple(2, 0, 18) },
-	{252, std::make_tuple(2, 0, 12) },
-	{253, std::make_tuple(2, 6, 6) },
-	{254, std::make_tuple(2, 6, 0) },
-	{255, std::make_tuple(2, 0, 6) },
-	{0, std::make_tuple(2, 0, 0) },
-
-	{225, std::make_tuple(3, 18, 18) },
-	{226, std::make_tuple(3, 18, 12) },
-	{227, std::make_tuple(3, 12, 18) },
-	{228, std::make_tuple(3, 12, 12) },
-	{229, std::make_tuple(3, 18, 6) },
-	{230, std::make_tuple(3, 18, 0) },
-	{231, std::make_tuple(3, 12, 6) },
-	{232, std::make_tuple(3, 12, 0) },
-	{233, std::make_tuple(3, 6, 18) },
-	{234, std::make_tuple(3, 6, 12) },
-	{235, std::make_tuple(3, 0, 18) },
-	{236, std::make_tuple(3, 0, 12) },
-	{237, std::make_tuple(3, 6, 6) },
-	{238, std::make_tuple(3, 6, 0) },
-	{239, std::make_tuple(3, 0, 6) },
-	{240, std::make_tuple(3, 0, 0) },
-
-	{33, std::make_tuple(4, 18, 18) },
-	{34, std::make_tuple(4, 18, 12) },
-	{35, std::make_tuple(4, 12, 18) },
-	{36, std::make_tuple(4, 12, 12) },
-	{37, std::make_tuple(4, 18, 6) },
-	{38, std::make_tuple(4, 18, 0) },
-	{39, std::make_tuple(4, 12, 6) },
-	{40, std::make_tuple(4, 12, 0) },
-	{41, std::make_tuple(4, 6, 18) },
-	{42, std::make_tuple(4, 6, 12) },
-	{43, std::make_tuple(4, 0, 18) },
-	{44, std::make_tuple(4, 0, 12) },
-	{45, std::make_tuple(4, 6, 6) },
-	{46, std::make_tuple(4, 6, 0) },
-	{47, std::make_tuple(4, 0, 6) },
-	{48, std::make_tuple(4, 0, 0) }
-
-      };
+                  { 0, std::make_tuple(18, 18) },
+                  { 1, std::make_tuple(18, 12) },
+                  { 2, std::make_tuple(12, 18) },
+                  { 3, std::make_tuple(12, 12) },
+                  { 4, std::make_tuple(18, 6) },
+                  { 5, std::make_tuple(18, 0) },
+                  { 6, std::make_tuple(12, 6) },
+                  { 7, std::make_tuple(12, 0) },
+                  { 8, std::make_tuple(6, 18) },
+                  { 9, std::make_tuple(6, 12) },
+                  { 10, std::make_tuple(0, 18) },
+                  { 11, std::make_tuple(0, 12) },
+                  { 12, std::make_tuple(6, 6) },
+                  { 13, std::make_tuple(6, 0) },
+                  { 14, std::make_tuple(0, 6) },
+                  { 15, std::make_tuple(0, 0) }
+            };
 //      const int planeCount = 2;
 //      const int pedestalLimit = 400;
 };
@@ -160,6 +91,7 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
       if (data[1] == 0) continue; //don't store dummy trigger
       int chipid = data[3];
       int planeNumber = getPlaneNumberFromCHIPID(chipid);
+      //printf("ChipID %04x: plane=%d\n", chipid, planeNumber);
 
       for (int ichan = 0; ichan < data[4]; ichan++) {
          int adc = data[5 + data[4] + ichan] & 0x0FFF; // extract adc
@@ -168,15 +100,15 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
          if (planeNumber >= 0) {  //plane, which is not found, has index -1
             if (hitbit) {
                if (adc < pedestalLimit) continue;
-	       //get the index from the HBU array
-	       //standart view: 1st hbu in upper right corner, asics facing to the viewer, tiles in the back. Dit upper right corner:
-	       //int coorx=getXcoordFromChipChannel(chipid, ichan);
-	       //int coory=getYcoordFromChipChannel(chipid, ichan);
-	       //testbeam view: side slab in the bottom, electronics facing beam line:
-	       int coory=getXcoordFromChipChannel(chipid, ichan);
-	       int coorx=planesYsize-getYcoordFromChipChannel(chipid, ichan)-1;
-	       
-               int coordIndex = coorx * planesXsize + coory; 
+               //get the index from the HBU array
+               //standart view: 1st hbu in upper right corner, asics facing to the viewer, tiles in the back. Dit upper right corner:
+               //int coorx=getXcoordFromChipChannel(chipid, ichan);
+               //int coory=getYcoordFromChipChannel(chipid, ichan);
+               //testbeam view: side slab in the bottom, electronics facing beam line:
+               int coory = getXcoordFromChipChannel(chipid, ichan);
+               int coorx = planesYsize - getYcoordFromChipChannel(chipid, ichan) - 1;
+
+               int coordIndex = coorx * planesXsize + coory;
                if (HBUs[planeNumber][coordIndex] >= 0) std::cout << "ERROR: channel already has a value" << std::endl;
                HBUs[planeNumber][coordIndex] = gainbit ? adc : 10 * adc;
                //HBUs[planeNumber][coordIndex] = 1;
@@ -211,6 +143,7 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
 }
 
 int AHCalRawEvent2StdEventConverter::getPlaneNumberFromCHIPID(int chipid) const {
+   return (chipid >> 8);
    auto searchIterator = mapping.find(chipid);
    if (searchIterator == mapping.end()) return -1;
    auto result = std::get<0>(searchIterator->second);
@@ -275,9 +208,9 @@ int AHCalRawEvent2StdEventConverter::getPlaneNumberFromCHIPID(int chipid) const 
 }
 
 int AHCalRawEvent2StdEventConverter::getXcoordFromChipChannel(int chipid, int channelNr) const {
-   auto searchIterator = mapping.find(chipid);
+   auto searchIterator = mapping.find(chipid & 0x0f);
    if (searchIterator == mapping.end()) return 0;
-   auto asicXCoordBase = std::get<1>(searchIterator->second);
+   auto asicXCoordBase = std::get<0>(searchIterator->second);
 
    int subx = channelNr / 6 + asicXCoordBase;
    return subx;
@@ -289,15 +222,19 @@ int AHCalRawEvent2StdEventConverter::getXcoordFromChipChannel(int chipid, int ch
 }
 
 int AHCalRawEvent2StdEventConverter::getYcoordFromChipChannel(int chipid, int channelNr) const {
-   auto searchIterator = mapping.find(chipid);
+   auto searchIterator = mapping.find(chipid & 0x0f);
    if (searchIterator == mapping.end()) return 0;
-   auto asicYCoordBase = std::get<2>(searchIterator->second);
+   auto asicYCoordBase = std::get<1>(searchIterator->second);
 
    int suby = channelNr % 6;
-   if (((chipid & 0x03) == 0x00) || ((chipid & 0x03) == 0x03)) {
+   if (chipid & 0x02) {
       //3rd and 4th spiroc have different channel order
       suby = 5 - suby;
    }
+//   if (((chipid & 0x03) == 0x00) || ((chipid & 0x03) == 0x03)) {
+//      //3rd and 4th spiroc have different channel order
+//      suby = 5 - suby;
+//   }
    suby += asicYCoordBase;
 //   if (((chipid & 0x03) == 0x01) || ((chipid & 0x03) == 0x03)) {
 //      suby += 6;

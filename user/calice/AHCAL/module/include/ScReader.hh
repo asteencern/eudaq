@@ -20,6 +20,7 @@ namespace eudaq {
                bool newForced);
          virtual void readTemperature(std::deque<char>& buf);
 
+         int updateCntModulo(const int oldCnt, const int newCntModulo, const int bits, const int maxBack);
          void appendOtherInfo(eudaq::RawEvent * ev);
 
          ScReader(AHCALProducer *r); //:
@@ -108,7 +109,7 @@ namespace eudaq {
          UnfinishedPacketStates _unfinishedPacketState;
 
          int _runNo;
-         unsigned int _cycleNo; //last successfully read readoutcycle
+         int _cycleNo; //last successfully read readoutcycle
          unsigned int _trigID; //last successfully read trigger ID from LDA timestamp. Next trigger should be _trigID+1
          unsigned int length; //length of the packed derived from LDA Header
 

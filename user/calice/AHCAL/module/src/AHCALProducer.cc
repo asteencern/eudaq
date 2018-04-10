@@ -90,6 +90,12 @@ void AHCALProducer::DoConfigure() {
    _InsertDummyPackets = param.Get("InsertDummyPackets", 0);
    _DebugKeepBuffered = param.Get("DebugKeepBuffered", 0);
    _KeepBuffered = param.Get("KeepBuffered", 10);
+   _maxRocJump = param.Get("MaximumROCJump", 50);
+
+   _ChipidKeepBits = param.Get("ChipidKeepBits", 0);
+   _ChipidAddBeforeMasking = param.Get("ChipidAddBeforeMasking", 0);
+   _ChipidAddAfterMasking = param.Get("ChipidAddAfterMasking", 0);
+   _AppendDifidToChipidBitPosition = param.Get("AppendDifidToChipidBitPosition", -1);
 
    string eventBuildingMode = param.Get("EventBuildingMode", "ROC");
    if (!eventBuildingMode.compare("ROC")) _eventBuildingMode = AHCALProducer::EventBuildingMode::ROC;
@@ -490,5 +496,30 @@ int AHCALProducer::getMaxTrigidSkip() const {
 
 int AHCALProducer::getKeepBuffered() const {
    return _KeepBuffered;
+}
+
+int AHCALProducer::getMaxRocJump() const
+{
+   return _maxRocJump;
+}
+
+int AHCALProducer::getAppendDifidToChipidBitPosition() const
+{
+   return _AppendDifidToChipidBitPosition;
+}
+
+int AHCALProducer::getChipidAddAfterMasking() const
+{
+   return _ChipidAddAfterMasking;
+}
+
+int AHCALProducer::getChipidAddBeforeMasking() const
+{
+   return _ChipidAddBeforeMasking;
+}
+
+int AHCALProducer::getChipidKeepBits() const
+{
+   return _ChipidKeepBits;
 }
 

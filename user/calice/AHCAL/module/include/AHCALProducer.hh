@@ -82,6 +82,11 @@ namespace eudaq {
          int getIgnoreLdaTimestamps() const;
          int getMaxTrigidSkip() const;
          int getKeepBuffered() const;
+         int getMaxRocJump() const;
+         int getAppendDifidToChipidBitPosition() const;
+         int getChipidAddAfterMasking() const;
+         int getChipidAddBeforeMasking() const;
+         int getChipidKeepBits() const;
 
          static const uint32_t m_id_factory = eudaq::cstr2hash("AHCALProducer");
          private:
@@ -94,10 +99,15 @@ namespace eudaq {
          int _InsertDummyPackets; //1=Put dummy packets to maintain an uninterrupted sequence of TriggerIDs. 0=don't inset anything
          int _DebugKeepBuffered; //1=keep events in buffer and don't send them to data collector
          int _KeepBuffered; // how many events to keep in the buffer
+         int _maxRocJump;//how many ROC can the data go backward and forward. This is needed for winglda with 2 FPGAs
          int _GenerateTriggerIDFrom; //sets from which triggerID number should be data generated (and filled with dummy triggers if necessary). Only works when insert_dummy_packets is enabled and in selected event building mode
          int _ColoredTerminalMessages; //1 for colored error worning and info messages
          int _IgnoreLdaTimestamps; //ignores the timestamp in the AHCAL LDA data stream
          int _StartWaitSeconds; //wait a fixed amount of seconds, befor the DoStartRun is executed
+         int _AppendDifidToChipidBitPosition; //whether to append the DIF-ID as upper N bits of Chip-ID. if -1, nothing is added
+         int _ChipidKeepBits;//how many bits to keep from the chipid
+         int _ChipidAddBeforeMasking;//a number to be added before the bit masking
+         int _ChipidAddAfterMasking;//a number to be added to the chipid after bit masking
          int _runNo;
          int _eventNo; //last sent event - for checking of correct event numbers sequence during sending events
 #ifdef _WIN32
