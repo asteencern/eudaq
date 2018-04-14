@@ -578,6 +578,10 @@ void caliceahcalbifProducer::ProcessQueuedBifData() {
             }
             cycleLengthBxids = (timestamp_resolution_ns * ((timestamp - _acq_start_ts) << 5) - _firstBxidOffsetBins) / _bxidLengthNs;
             switch (_dumpCycleInfoLevel) {
+	       case 3:
+		 std::cout << std::dec << (int) _ReadoutCycle << " "<<_acq_start_ts<<" "<<" 1 "<<(timestamp - _acq_start_ts) <<" #start"<<std::endl;
+		 std::cout << std::dec << (int) _ReadoutCycle << " "<<timestamp<<" "<<" 0 "<<(timestamp - _acq_start_ts) <<" #stop"<<std::endl;
+		 break;
                case 2:
                   std::cout << std::dec << "ROC: " << (int) _ReadoutCycle;
                   std::cout << "\tLength[BXings]: " << (int) cycleLengthBxids;
