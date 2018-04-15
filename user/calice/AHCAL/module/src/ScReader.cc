@@ -961,6 +961,13 @@ namespace eudaq {
       it += 8;
       for (short tr = 0; tr < nscai; tr++) {
 // binary data: 128 words
+         int bxididx = e_sizeLdaHeader + length - 4 - (nscai - tr) * 2;
+         int bxid = (unsigned char) buf[bxididx + 1] * 256 + (unsigned char) buf[bxididx];
+         if (bxid > 4096) {
+            std::cout << "ERROR: processing too high BXID: " << bxid << std::endl;
+            EUDAQ_WARN(" bxid = " + to_string(bxid));
+         }
+	 if (bxid<1) continue; //BXID==0 has a TDC bug -> discard!
          vector<unsigned short> adc, tdc;
 
          for (int np = 0; np < NChannel; np++) {
@@ -972,12 +979,6 @@ namespace eudaq {
 
          it += NChannel * 4;
 
-         int bxididx = e_sizeLdaHeader + length - 4 - (nscai - tr) * 2;
-         int bxid = (unsigned char) buf[bxididx + 1] * 256 + (unsigned char) buf[bxididx];
-         if (bxid > 4096) {
-            std::cout << "ERROR: processing too high BXID: " << bxid << std::endl;
-            EUDAQ_WARN(" bxid = " + to_string(bxid));
-         }
          vector<int> infodata;
          infodata.push_back((int) _cycleNo);
          infodata.push_back(bxid);
