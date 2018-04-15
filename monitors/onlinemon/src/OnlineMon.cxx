@@ -104,7 +104,8 @@ RootMonitor::RootMonitor(const std::string & runcontrol,
 
     }
   }
-
+ 
+  if (mon_configdata.getDisableCorrelations()) _colls.erase(_colls.begin()+1);
 
   // print the configuration
   mon_configdata.PrintConfiguration();

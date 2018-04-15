@@ -99,17 +99,13 @@ void CorrelationCollection::Fill(const SimpleStandardEvent &simpev) {
     // to true
     for (unsigned int skipplanes = 0;
          skipplanes < selected_planes_to_skip.size(); skipplanes++) {
-      if ((selected_planes_to_skip[skipplanes] > 0) &&
-          (selected_planes_to_skip[skipplanes] < nPlanes)) {
+      if ((selected_planes_to_skip[skipplanes] > 0) && (selected_planes_to_skip[skipplanes] < nPlanes)) {
         skip_this_plane[selected_planes_to_skip[skipplanes]] = true;
-        std::cout << "CorrelationCollection : Disabling Plane "
-                  << selected_planes_to_skip[skipplanes] << endl;
+        // std::cout << "CorrelationCollection : Disabling Plane " << selected_planes_to_skip[skipplanes] << endl;
         nPlanes_disabled++;
       }
     }
-    if (nPlanes_disabled > 0)
-      std::cout << "CorrelationCollection : Disabling " << nPlanes_disabled
-                << " Planes" << endl;
+    // if (nPlanes_disabled > 0) std::cout << "CorrelationCollection : Disabling " << nPlanes_disabled<< " Planes" << endl;
   }
   if (nPlanes - nPlanes_disabled < 2) {
     if (nPlanes > 2)
@@ -197,19 +193,14 @@ CorrelationCollection::FillWithTracks(const SimpleStandardEvent &simpev) {
       if ((selected_planes_to_skip[skipplanes] > 0) &&
           (selected_planes_to_skip[skipplanes] < nPlanes)) {
         skip_this_plane[selected_planes_to_skip[skipplanes]] = true;
-        std::cout << "CorrelationCollection : Disabling Plane "
-                  << selected_planes_to_skip[skipplanes] << endl;
+        // std::cout << "CorrelationCollection : Disabling Plane " << selected_planes_to_skip[skipplanes] << endl;
         nPlanes_disabled++;
       }
     }
-    if (nPlanes_disabled > 0)
-      std::cout << "CorrelationCollection : Disabling " << nPlanes_disabled
-                << " Planes" << endl;
+    // if (nPlanes_disabled > 0) std::cout << "CorrelationCollection : Disabling " << nPlanes_disabled                << " Planes" << endl;
   }
   if (nPlanes - nPlanes_disabled < 2) {
-    if (nPlanes > 2)
-      std::cout << "CorrelationCollection : Too Many Planes Disabled ..."
-                << endl;
+    // if (nPlanes > 2) std::cout << "CorrelationCollection : Too Many Planes Disabled ..." << endl;
   } else {
     clustersInPlanes.reserve(nPlanes);
 
