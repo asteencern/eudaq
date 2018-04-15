@@ -102,11 +102,11 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
                if (adc < pedestalLimit) continue;
                //get the index from the HBU array
                //standart view: 1st hbu in upper right corner, asics facing to the viewer, tiles in the back. Dit upper right corner:
-               //int coorx=getXcoordFromChipChannel(chipid, ichan);
-               //int coory=getYcoordFromChipChannel(chipid, ichan);
+               int coorx=getXcoordFromChipChannel(chipid, ichan);
+               int coory=getYcoordFromChipChannel(chipid, ichan);
                //testbeam view: side slab in the bottom, electronics facing beam line:
-               int coory = getXcoordFromChipChannel(chipid, ichan);
-               int coorx = planesYsize - getYcoordFromChipChannel(chipid, ichan) - 1;
+               //int coory = getXcoordFromChipChannel(chipid, ichan);
+               //int coorx = planesYsize - getYcoordFromChipChannel(chipid, ichan) - 1;
 
                int coordIndex = coorx * planesXsize + coory;
                if (HBUs[planeNumber][coordIndex] >= 0) std::cout << "ERROR: channel already has a value" << std::endl;
