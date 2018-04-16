@@ -31,8 +31,8 @@ xterm -sb -sl 100000 -geometry 160x30 -T "Hodoscope Data collector" -e 'bin/euCl
 #sleep 1
 
 #################  Producer #################
-xterm -r -sb -sl 1000000 -geometry 160x5 -T "Hodoscope 1" -e 'bin/euCliProducer -n CaliceEasirocProducer -t Hodoscope1 |tee -a data/logs/hodoscope1.log ; read'&
-xterm -r -sb -sl 1000000 -geometry 160x5 -T "Hodoscope 2" -e 'bin/euCliProducer -n CaliceEasirocProducer -t Hodoscope2 |tee -a data/logs/hodoscope2.log ; read'&
+xterm -r -sb -sl 100000 -geometry 160x5 -T "Hodoscope 1" -e 'bin/euCliProducer -n CaliceEasirocProducer -t Hodoscope1 |tee -a data/logs/hodoscope1.log ; read'&
+xterm -r -sb -sl 100000 -geometry 160x5 -T "Hodoscope 2" -e 'bin/euCliProducer -n CaliceEasirocProducer -t Hodoscope2 |tee -a data/logs/hodoscope2.log ; read'&
 # sleep 1
 xterm -r -sb -sl 100000 -geometry 160x24 -T "AHCAL" -e 'bin/euCliProducer -n AHCALProducer -t AHCAL1 |tee -a data/logs/ahcal.log ; read'&
 xterm -r -sb -sl 100000 -geometry 160x24 -T "BIF" -e 'bin/euCliProducer -n caliceahcalbifProducer -t BIF1 |tee -a data/logs/bif.log ; read'&
