@@ -8,7 +8,7 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
-#define planeCount 40
+#define planeCount 41
 #define pedestalLimit 500
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
