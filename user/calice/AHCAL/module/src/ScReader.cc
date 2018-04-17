@@ -910,6 +910,7 @@ namespace eudaq {
    void ScReader::readAHCALData(std::deque<char> &buf, std::map<int, std::vector<std::vector<int> > >& AHCALData) {
 //AHCALData[_cycleNo];
       unsigned int LDA_Header_cycle = (unsigned char) buf[4]; //from LDA packet header - 8 bits only!
+      unsigned int LDA_Header_port = buf[7];//Port number from LDA header
       auto old_cycleNo = _cycleNo;
       _cycleNo = updateCntModulo(_cycleNo, LDA_Header_cycle, 8, _producer->getMaxRocJump()); //update the 32 bit counter with 8bit counter
       int8_t cycle_difference = _cycleNo - old_cycleNo; //LDA_Header_cycle - (old_cycleNo & 0xFF);
@@ -941,9 +942,9 @@ namespace eudaq {
       if ((length - 12) % 146) {
 //we check, that the data packets from DIF have proper sizes. The RAW packet size can be checked
 // by complying this condition:
-         EUDAQ_ERROR("Wrong LDA packet length = " + to_string(length) + "in Run=" + to_string(_runNo) + " ,cycle= " + to_string(_cycleNo));
-         std::cout << "Wrong LDA packet length = " << length << "in Run=" << _runNo << " ,cycle= " << _cycleNo << std::endl;
-//         ev->SetTag("DAQquality", 0);
+	EUDAQ_ERROR("Wrong LDA packet length = " + to_string(length) + "in Run=" + to_string(_runNo) + " ,cycle= " + to_string(_cycleNo)+" ,port="+to_string(LDA_Header_port));
+         std::cout << "Wrong LDA packet length = " << length << "in Run=" << _runNo << " ,cycle= " << _cycleNo <<" ,port="<<LDA_Header_port<< std::endl;
+//         ev->SetTag("DAQquality", 0); //TODO
          buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
          return;
       }
@@ -964,7 +965,7 @@ namespace eudaq {
          int bxididx = e_sizeLdaHeader + length - 4 - (nscai - tr) * 2;
          int bxid = (unsigned char) buf[bxididx + 1] * 256 + (unsigned char) buf[bxididx];
          if (bxid > 4096) {
-            std::cout << "ERROR: processing too high BXID: " << bxid << std::endl;
+	   std::cout << "ERROR: processing too high BXID: " << bxid << " in ROC "<<_cycleNo<<", port "<<LDA_Header_port<<std::endl;
             EUDAQ_WARN(" bxid = " + to_string(bxid));
          }
 	 if (bxid<1) continue; //BXID==0 has a TDC bug -> discard!
