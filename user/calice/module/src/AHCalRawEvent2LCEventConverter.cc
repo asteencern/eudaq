@@ -166,7 +166,7 @@ namespace eudaq {
             getDataLCIOGenericObject(rawev, col, nblock);
 
             auto bl6 = rawev->GetBlock(6);
-            if (bl6.size() == 0) cout << "Nothing in Timestamps collection..." << endl;
+            // if (bl6.size() == 0) cout << "Nothing in Timestamps collection..." << endl;
             if (bl6.size() > 0) {
                //cout << "Looking for Timestamps collection..." << endl;
                LCCollectionVec *col = 0;
