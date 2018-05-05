@@ -38,7 +38,7 @@ namespace eudaq{
     char time_buff[13];
     time_buff[12] = 0;
     std::strftime(time_buff, sizeof(time_buff),
-		  "%y%m%d%H%M%S", std::localtime(&time_now));
+		  "%Y%m%d_%H%M%S", std::localtime(&time_now));
     m_start_time = std::string(time_buff);
   }
   

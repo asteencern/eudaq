@@ -31,7 +31,7 @@ void NativeFileWriter::WriteEvent(eudaq::EventSPC ev) {
     char time_buff[13];
     time_buff[12] = 0;
     std::strftime(time_buff, sizeof(time_buff),
-		  "%y%m%d%H%M%S", std::localtime(&time_now));
+		  "%y%m%d_%H%M%S", std::localtime(&time_now));
     std::string time_str(time_buff);
     m_ser.reset(new eudaq::FileSerializer((eudaq::FileNamer(m_filepattern).
 					   Set('X', ".raw").
