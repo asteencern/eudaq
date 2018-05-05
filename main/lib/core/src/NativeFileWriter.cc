@@ -28,8 +28,8 @@ void NativeFileWriter::WriteEvent(eudaq::EventSPC ev) {
   uint32_t run_n = ev->GetRunN();
   if(!m_ser || m_run_n != run_n){
     std::time_t time_now = std::time(nullptr);
-    char time_buff[13];
-    time_buff[12] = 0;
+    char time_buff[16];
+    time_buff[15] = 0;
     std::strftime(time_buff, sizeof(time_buff),
 		  "%Y%m%d_%H%M%S", std::localtime(&time_now));
     std::string time_str(time_buff);

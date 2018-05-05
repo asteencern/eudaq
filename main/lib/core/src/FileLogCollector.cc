@@ -35,8 +35,8 @@ namespace eudaq{
     m_level_print = 0;
 
     std::time_t time_now = std::time(nullptr);
-    char time_buff[13];
-    time_buff[12] = 0;
+    char time_buff[16];
+    time_buff[15] = 0;
     std::strftime(time_buff, sizeof(time_buff),
 		  "%Y%m%d_%H%M%S", std::localtime(&time_now));
     m_start_time = std::string(time_buff);
