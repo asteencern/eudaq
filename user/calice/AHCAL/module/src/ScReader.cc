@@ -968,7 +968,7 @@ namespace eudaq {
 	   std::cout << "ERROR: processing too high BXID: " << bxid << " in ROC "<<_cycleNo<<", port "<<LDA_Header_port<<std::endl;
             EUDAQ_WARN(" bxid = " + to_string(bxid));
          }
-	 if (bxid<1) continue; //BXID==0 has a TDC bug -> discard!
+	 if (bxid < _producer->getMinimumBxid()) continue; //BXID==0 has a TDC bug -> discard!
          vector<unsigned short> adc, tdc;
 
          for (int np = 0; np < NChannel; np++) {

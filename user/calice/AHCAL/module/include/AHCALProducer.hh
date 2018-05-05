@@ -87,6 +87,7 @@ namespace eudaq {
          int getChipidAddAfterMasking() const;
          int getChipidAddBeforeMasking() const;
          int getChipidKeepBits() const;
+         int getMinimumBxid() const;
 
          static const uint32_t m_id_factory = eudaq::cstr2hash("AHCALProducer");
          private:
@@ -108,6 +109,7 @@ namespace eudaq {
          int _ChipidKeepBits;//how many bits to keep from the chipid
          int _ChipidAddBeforeMasking;//a number to be added before the bit masking
          int _ChipidAddAfterMasking;//a number to be added to the chipid after bit masking
+         int _minimumBxid; // minimal accepted BXID
          int _runNo;
          int _eventNo; //last sent event - for checking of correct event numbers sequence during sending events
 #ifdef _WIN32
