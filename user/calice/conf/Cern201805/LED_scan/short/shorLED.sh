@@ -17,7 +17,7 @@ LABVFolder="SHORT"
 NV="3"
 V0="5400"
 dmV="300"
-EVENTS="32000"
+EVENTS="2000"
 EUDAQ_FOLDER="LED"
 MAKE_DIR="n"
 
@@ -96,7 +96,7 @@ echo MAKE_DIR = ${MAKE_DIR}
 COUNTERI=0
 COUNTERJ=1
 
-for i in `seq 0 $((NV + 0))`
+for i in `seq 0 $((NV))`
 do
     echo "Generating configuration file ${i}"
     CNT2DI=`printf "%03d" ${i}`
@@ -105,8 +105,22 @@ do
     sed -i "s/GENERATE_EVENTS/${EVENTS}/g" $PWD/LED_${CNT2DI}.conf
     sed -i "s/GENERATE_LABVIEW_FOLDER/${LABVFolder}/g" $PWD/LED_${CNT2DI}.conf
     # sed -i "s/eudaqfold/${EUDAQ_FOLDER}/g" $PWD/LED_000.conf
+    sed -i "s/GENERATE_LEDFILE/LED_${CNT2DI}.ini/g" $PWD/LED_${CNT2DI}.conf
     sed -i "s#GENERATE_FILE#$PWD/LED_${CNT2DJ}.conf#g" $PWD/LED_${CNT2DI}.conf
     # let COUNTERI=COUNTERI + 1
+done
+
+#last file: keep taking pedestal
+for i in $((NV + 1))
+do
+    echo "Generating configuration file ${i}"
+    CNT2DI=`printf "%03d" ${i}`
+    CNT2DJ=`printf "%03d" $((i + 1))`
+    /bin/cp -f $PWD/xxLED.conf $PWD/LED_$CNT2DI.conf
+    sed -i "s/GENERATE_EVENTS/999999/g" $PWD/LED_${CNT2DI}.conf
+    sed -i "s/GENERATE_LABVIEW_FOLDER/${LABVFolder}/g" $PWD/LED_${CNT2DI}.conf
+    sed -i "s/GENERATE_LEDFILE/LED_000.ini/g" $PWD/LED_${CNT2DI}.conf
+    sed -i "s#GENERATE_FILE#$PWD/LED_${CNT2DI}.conf#g" $PWD/LED_${CNT2DI}.conf
 done
 
 # while [ $COUNTERI -lt ${NV} ]; 
