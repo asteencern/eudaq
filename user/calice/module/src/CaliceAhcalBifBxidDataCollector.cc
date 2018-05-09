@@ -98,6 +98,9 @@ void CaliceAhcalBifBxidDataCollector::DoConfigure() {
       conf->Print();
       // m_pri_ts = conf->Get("PRIOR_TIMESTAMP", m_pri_ts?1:0);
    }
+   int MandatoryBif = conf->Get("MandatoryBif", 1);
+   m_evt_mandatory_bif = (MandatoryBif==1) ? true : false;
+   std::cout<<"#MandatoryBif="<<MandatoryBif<<std::endl;
    lastprinttime = std::chrono::system_clock::now();
 }
 
