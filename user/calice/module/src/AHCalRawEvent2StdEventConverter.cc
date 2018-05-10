@@ -9,7 +9,7 @@
 #define planesXsize 24
 #define planesYsize 24
 #define planeCount 41
-#define pedestalLimit 500
+#define pedestalLimit 0
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
    public:
