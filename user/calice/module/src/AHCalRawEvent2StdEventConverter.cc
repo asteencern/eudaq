@@ -8,8 +8,9 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
-#define planeCount 41
-#define pedestalLimit 500
+#define planeCount 39
+#define pedestalLimit 0 //minimum adc value, that will be displayed
+#define eventSizeLimit 2 //minimum size of the event which will be displayed
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
    public:
@@ -20,6 +21,19 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
       int getPlaneNumberFromCHIPID(int chipid) const;
       int getXcoordFromChipChannel(int chipid, int channelNr) const;
       int getYcoordFromChipChannel(int chipid, int channelNr) const;
+      const std::map<int, int> layerOrder = { //{module,layer}
+            { 2, 1 }, { 3, 2 }, { 4, 3 }, { 5, 4 },
+                  { 6, 5 }, { 8, 6 }, { 9, 7 }, { 10, 8 },
+                  { 11, 9 }, { 13, 10 }, { 14, 11 }, { 19, 12 },
+                  { 21, 13 }, { 23, 14 }, { 24, 15 }, { 25, 16 },
+                  { 30, 17 }, { 12, 18 }, { 15, 19 }, { 16, 20 },
+                  { 17, 21 }, { 18, 22 }, { 22, 23 }, { 28, 24 },
+                  { 39, 25 }, { 1, 26 }, { 20, 27 }, { 26, 28 },
+                  { 32, 29 }, { 40, 30 }, { 27, 31 }, { 31, 32 },
+                  { 38, 33 }, { 37, 34 }, { 29, 35 }, { 33, 36 },
+                  { 34, 37 }, { 36, 38 }
+            };
+
       const std::map<int, std::tuple<int, int>> mapping = { //chipid to tuple: layer, xcoordinate, ycoordinate
             //layer 1: single HBU
             //                  { 185, std::make_tuple(0, 18, 18) },
@@ -57,9 +71,13 @@ namespace {
 }
 
 bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdEventSP d2, eudaq::ConfigSPC conf) const {
-   std::string sensortype = "AHCAL Module"; //TODO ?? "HBU"
+   std::string sensortype = "AHCAL Layer"; //TODO ?? "HBU"
    auto ev = std::dynamic_pointer_cast<const eudaq::RawEvent>(d1);
    size_t nblocks = ev->NumBlocks();
+//   if (nblocks < 7 + eventSizeLimit) {
+//      std::cout << ev->GetEventNumber() << "<too small(" << nblocks - 7 << ")>" << std::endl;
+//      return false;
+//   }
    std::vector<std::unique_ptr<eudaq::StandardPlane>> planes;
    std::vector<int> HBUHits;
    std::vector<std::array<int, planesXsize * planesYsize>> HBUs;         //HBU(aka plane) index, x*12+y
@@ -72,7 +90,7 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
    unsigned int nblock = 7; // the first 7 blocks contain other information
    std::cout << ev->GetEventNumber() << "<" << std::flush;
 
-   while (nblock < ev->NumBlocks()) {         //iterate over all asic packets from (hopefully) same BXID
+   while ((nblock < ev->NumBlocks())&(nblocks > 6 + eventSizeLimit)) {         //iterate over all asic packets from (hopefully) same BXID
       std::vector<int> data;
       const auto & bl = ev->GetBlock(nblock++);
       data.resize(bl.size() / sizeof(int));
@@ -102,8 +120,8 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
                if (adc < pedestalLimit) continue;
                //get the index from the HBU array
                //standart view: 1st hbu in upper right corner, asics facing to the viewer, tiles in the back. Dit upper right corner:
-               int coorx=getXcoordFromChipChannel(chipid, ichan);
-               int coory=getYcoordFromChipChannel(chipid, ichan);
+               int coorx = getXcoordFromChipChannel(chipid, ichan);
+               int coory = getYcoordFromChipChannel(chipid, ichan);
                //testbeam view: side slab in the bottom, electronics facing beam line:
                //int coory = getXcoordFromChipChannel(chipid, ichan);
                //int coorx = planesYsize - getYcoordFromChipChannel(chipid, ichan) - 1;
@@ -143,68 +161,16 @@ bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdE
 }
 
 int AHCalRawEvent2StdEventConverter::getPlaneNumberFromCHIPID(int chipid) const {
-   return (chipid >> 8);
-   auto searchIterator = mapping.find(chipid);
-   if (searchIterator == mapping.end()) return -1;
-   auto result = std::get<0>(searchIterator->second);
-   return result;
-//   return planeNumbers[chipid];
-
-   int planeNumber = -1;
-   switch ((chipid - 1) >> 2) {
-      // case 48: //193
-      //    planeNumber = 0;
-      //    break;
-      case 46:   //185
-         planeNumber = 0;
-         break;
-      case 42:   //169
-         planeNumber = 1;
-         break;
-      case 43:   //173
-         planeNumber = 2;
-         break;
-
-         // case 59: //237
-         //    planeNumber = 0;
-         //    break;
-         // case 60: //241
-         //    planeNumber = 1;
-         //    break;
-         // case 61: //245
-         //    planeNumber = 2;
-         //    break;
-         // case 30: //121
-         //    planeNumber = 3;
-         //    break;
-         // case 29: //117
-         //    planeNumber = 4;
-         //    break;
-         // case 62: //249
-         //    planeNumber = 5;
-         //    break;
-         // case 56: //225
-         //    planeNumber = 6;
-         //    break;
-         // case 54: //217
-         //    planeNumber = 7;
-         //    break;
-         // case 53: //213
-         //    planeNumber = 8;
-         //    break;
-         // case 51: //205
-         //    planeNumber = 9;
-         //    break;
-         // case 55: //221
-         //    planeNumber = 10;
-         //    break;
-         // case 50: //201
-         //    planeNumber = 11;
-         //    break;
-      default:
-         break;
+   //return (chipid >> 8);
+   int module = (chipid >> 8);
+   auto searchIterator = layerOrder.find(module);
+   if (searchIterator == layerOrder.end()) {
+      std::cout << "Module " << module << " is not in mapping";
+      return -1;
    }
-   return planeNumber;
+   auto Layer = searchIterator->second;
+   return Layer;
+//   return result;
 }
 
 int AHCalRawEvent2StdEventConverter::getXcoordFromChipChannel(int chipid, int channelNr) const {
