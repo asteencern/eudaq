@@ -57,7 +57,7 @@ namespace {
 }
 
 bool AHCalRawEvent2StdEventConverter::Converting(eudaq::EventSPC d1, eudaq::StdEventSP d2, eudaq::ConfigSPC conf) const {
-   std::string sensortype = "Calice"; //TODO ?? "HBU"
+   std::string sensortype = "AHCAL Module"; //TODO ?? "HBU"
    auto ev = std::dynamic_pointer_cast<const eudaq::RawEvent>(d1);
    size_t nblocks = ev->NumBlocks();
    std::vector<std::unique_ptr<eudaq::StandardPlane>> planes;
