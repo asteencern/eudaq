@@ -147,6 +147,9 @@ void caliceahcalbifProducer::RunLoop() {
       }
       justStopped = _TLUJustStopped; //copy  this variable, so that it doesnt change within the main loop
       if (_TLUStarted || justStopped) {
+         if (_redirectedInputFileName.length()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000)); //otherwise we might be too early with data sending, even before ahcal connects to the datacollector
+         }
          while (true) {               //loop until all data from BIF is processed
             bool FetchResult = FetchBifDataWasSuccessfull();
             auto controller_queue_size = _redirectedInputFileName.length() ? _redirectedInputData.size() : m_tlu->GetEventData()->size(); //number of 64-bit words in the local data vector
