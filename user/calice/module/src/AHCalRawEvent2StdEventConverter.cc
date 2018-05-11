@@ -8,6 +8,7 @@
 //parameters to be later provided by a configuration file
 #define planesXsize 24
 #define planesYsize 24
+
 #define planeCount 39
 #define pedestalLimit 0 //minimum adc value, that will be displayed
 #define eventSizeLimit 2 //minimum size of the event which will be displayed
