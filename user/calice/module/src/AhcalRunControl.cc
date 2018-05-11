@@ -80,8 +80,8 @@ void AhcalRunControl::Exec() {
    StartRunControl();
    std::cout << "AHCAL runcontrol Exec - after StartRunControl" << std::endl;
    while (IsActiveRunControl()) {
-      std::cout << "AHCAL runcontrol Exec - while loop" << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      //std::cout << "AHCAL runcontrol Exec - while loop" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       bool restart_run = false; //whether to stop the run. There might be different reasons for it (timeout, number of evts, filesize...)
       if (m_flag_running) {
          //timeout condition
