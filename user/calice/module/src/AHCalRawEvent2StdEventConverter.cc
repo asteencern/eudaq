@@ -11,7 +11,7 @@
 
 #define planeCount 39
 #define pedestalLimit 0 //minimum adc value, that will be displayed
-#define eventSizeLimit 2 //minimum size of the event which will be displayed
+#define eventSizeLimit 1 //minimum size of the event which will be displayed
 
 class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
    public:
