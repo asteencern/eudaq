@@ -683,6 +683,9 @@ void caliceahcalbifProducer::ProcessQueuedBifData() {
                         case 1:
                            std::cout << "," << std::flush;
                            break;
+                        case 3:
+                           std::cout << input << std::flush;
+                           break;
                         default:
                            break;
                      }
