@@ -112,6 +112,7 @@ namespace eudaq {
          int _minimumBxid; // minimal accepted BXID
          int _runNo;
          int _eventNo; //last sent event - for checking of correct event numbers sequence during sending events
+         int _minEventHits;//minimum number of hits in the event
 #ifdef _WIN32
          SOCKET _fd;
          std::ifstream _redirectedInputFstream;

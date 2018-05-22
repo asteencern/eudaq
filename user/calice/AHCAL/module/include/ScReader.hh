@@ -120,6 +120,7 @@ namespace eudaq {
          std::vector<std::pair<std::pair<int, int>, int> > _vecTemp;            // (lda, port), data;
          std::vector<int> slowcontrol;
          std::vector<int> ledInfo;
+         std::vector<int> HVAdjInfo;// Bias Voltage adjustments. Data structure: entry is an 8x integer in following format: LDA, Port, Module, 0 HV1, HV2, HV3, 0
          std::vector<uint32_t> cycleData;
 
          int _lastBuiltEventNr;            //last event number for keeping track of missed events in the stream (either ROC, trigger number or arbitrary number)
@@ -127,6 +128,8 @@ namespace eudaq {
          std::map<int, LDATimeData> _LDATimestampData; //maps READOUTCYCLE to LDA timestamps for that cycle (comes asynchronously with the data and tends to arrive before the ASIC packets)
 
          std::map<int, std::vector<std::vector<int> > > _LDAAsicData;              //maps readoutcycle to vector of "infodata"
+
+         std::map<int, int> _DaqErrors;              // <ReadoutCycleNumber, ErrorMask> if errormas is 0, everything is OK
 
          RunTimeStatistics _RunTimesStatistics;
    }

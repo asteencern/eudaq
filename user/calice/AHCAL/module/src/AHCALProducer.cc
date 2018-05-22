@@ -96,7 +96,8 @@ void AHCALProducer::DoConfigure() {
    _ChipidAddBeforeMasking = param.Get("ChipidAddBeforeMasking", 0);
    _ChipidAddAfterMasking = param.Get("ChipidAddAfterMasking", 0);
    _AppendDifidToChipidBitPosition = param.Get("AppendDifidToChipidBitPosition", -1);
-   _minimumBxid=param.Get("MinimumBxid",0);
+   _minimumBxid = param.Get("MinimumBxid", 0);
+   _minEventHits = param.Get("MinimumEventHits", 1);
 
    string eventBuildingMode = param.Get("EventBuildingMode", "ROC");
    if (!eventBuildingMode.compare("ROC")) _eventBuildingMode = AHCALProducer::EventBuildingMode::ROC;
@@ -118,7 +119,7 @@ void AHCALProducer::DoConfigure() {
 
 void AHCALProducer::DoStartRun() {
    _runNo = GetRunNumber();
-   _eventNo = -1;
+   _eventNo = 0;
    _BORE_sent = false;
    // raw file open
    if (_writeRaw) OpenRawFile(_runNo, _writerawfilename_timestamp);
@@ -311,9 +312,6 @@ void AHCALProducer::SendCommand(const char *command, int size) {
 
 void AHCALProducer::sendallevents(std::deque<eudaq::EventUP> & deqEvent, int minimumsize) {
    while (deqEvent.size() > minimumsize) {
-
-      //std::this_thread::sleep_for(std::chrono::seconds(1));
-
       std::lock_guard<std::mutex> lock(_reader->_eventBuildingQueueMutex);
       if (deqEvent.front()) {
          if (!_BORE_sent) {
@@ -327,47 +325,15 @@ void AHCALProducer::sendallevents(std::deque<eudaq::EventUP> & deqEvent, int min
 //               std::cout << "SENDEVENTS: Run " + to_string(_runNo) + " Event " + to_string(deqEvent.front()->GetEventN()) + " not in sequence. Expected " + to_string(_eventNo + 1) << std::endl;
 //               EUDAQ_WARN("Run " + to_string(_runNo) + " Event " + to_string(deqEvent.front()->GetEventN()) + " not in sequence. Expected " + to_string(_eventNo + 1));
 //            }
-         _eventNo = deqEvent.front()->GetEventN();
-         SendEvent(std::move(deqEvent.front()));
+         //std::cout << "#DEBUG: sm_block=" << std::to_string(deqEvent.front()->GetBlockNumList().size()) << std::endl;
+         if ((deqEvent.front()->GetBlockNumList().size() - 7) >= _minEventHits) {
+            _eventNo++;      // = deqEvent.front()->GetEventN();
+            SendEvent(std::move(deqEvent.front()));
+         }
          deqEvent.pop_front();
       }
-
    }
 
-//      eudaq::EventUP ev = deqEvent.front();
-//      if (from_string(ev->GetTag("TriggerValidated"), -1) == 1) {
-//         if (ev->GetEventNumber() != (_eventNo + 1)) {
-//            EUDAQ_WARN("Run " + to_string(_runNo) + " Event " + to_string(ev->GetEventNumber()) +
-//                  " not in sequence. Expected " + to_string(_eventNo + 1), std::cout, NULL)
-//            ;
-//
-//            //fix for a problem of 2 triggers, that came in the same ROC
-//            if (ev->GetEventNumber() == (_eventNo + 2)) {
-//               EUDAQ_WARN(" Sending event " + to_string(ev->GetEventNumber()) + " twice");
-//               // SendEvent(*(deqEvent.front()));
-//               SendEvent(deqEvent.front()->Clone());
-//            } else {
-//               int jump = (ev->GetEventNumber() - (_eventNo + 1));
-//               EUDAQ_ERROR(
-//                     "Run " + to_string(_runNo) + " Event " + to_string(ev->GetEventNumber())
-//                           + " cannot be fixed by sending the packet twice. Problem more complex, which is not possible to fix a jump by " + to_string(jump));
-//            }
-//         }
-//
-//         _eventNo = ev->GetEventNumber(); //save the last event number
-//         // SendEvent(*(deqEvent.front()));
-//         SendEvent(deqEvent.front()->Clone());
-//         if (from_string(ev->GetTag("TriggerInvalid"), -1) == 1) {
-//            cout << "Send DUMMY eventN=" << ev->GetEventNumber() << " with " << ev->NumBlocks() << " Blocks, and TriggerTag=" << from_string(ev->GetTag("TriggerValidated"), -1) << endl;
-//         } else {
-//            cout << "Send eventN=" << ev->GetEventNumber() << " with " << ev->NumBlocks() << " Blocks, and TriggerTag=" << from_string(ev->GetTag("TriggerValidated"), -1) << endl;
-//         }
-//      } else
-//         cout << "Discard eventN=" << ev->GetEventNumber() << " with " << ev->NumBlocks() << " Blocks, and TriggerTag=" << from_string(ev->GetTag("TriggerValidated"), -1) << endl;
-//      delete deqEvent.front();
-//      deqEvent.pop_front();
-////      }
-//      return deqEvent;
 }
 
 void AHCALProducer::RunLoop() {
@@ -440,6 +406,9 @@ void AHCALProducer::RunLoop() {
    _stopped = 1;
    bufRead.clear();
    deqEvent.clear();
+   EUDAQ_INFO_STREAMOUT("Completed ROC=" + std::to_string(dynamic_cast<ScReader*>(_reader)->getCycleNo()) +
+         ", Triggers=" + std::to_string(dynamic_cast<ScReader*>(_reader)->getTrigId() - getLdaTrigidOffset()) +
+         ", Events=" + std::to_string(_eventNo), std::cout, std::cerr);
 #ifdef _WIN32
    closesocket(_fd);
 #else
@@ -525,5 +494,5 @@ int AHCALProducer::getChipidKeepBits() const
 }
 
 int AHCALProducer::getMinimumBxid() const {
-  return _minimumBxid;
+   return _minimumBxid;
 }
