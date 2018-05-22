@@ -1,4 +1,5 @@
 #include "eudaq/DataCollector.hh"
+#include "eudaq/Logger.hh"
 #include <mutex>
 #include <deque>
 #include <map>
@@ -99,8 +100,8 @@ void CaliceAhcalBifBxidDataCollector::DoConfigure() {
       // m_pri_ts = conf->Get("PRIOR_TIMESTAMP", m_pri_ts?1:0);
    }
    int MandatoryBif = conf->Get("MandatoryBif", 1);
-   m_evt_mandatory_bif = (MandatoryBif==1) ? true : false;
-   std::cout<<"#MandatoryBif="<<MandatoryBif<<std::endl;
+   m_evt_mandatory_bif = (MandatoryBif == 1) ? true : false;
+   std::cout << "#MandatoryBif=" << MandatoryBif << std::endl;
    lastprinttime = std::chrono::system_clock::now();
 }
 
@@ -141,6 +142,10 @@ void CaliceAhcalBifBxidDataCollector::DoDisconnect(eudaq::ConnectionSPC idx) {
    if (idx->GetName() == mc_name_hodoscope2) m_active_hodoscope2 = false;
    if (idx->GetName() == mc_name_desytable) m_active_desytable = false;
    std::cout << m_thrown_incomplete << " incomplete events thrown away" << std::endl;
+   if (!(m_active_ahcal && m_active_bif && m_active_desytable && m_active_hodoscope1 && m_active_hodoscope2)) {
+//      BuildEvent_bxid();
+      EUDAQ_INFO_STREAMOUT("Saved events: " + std::to_string(m_ev_n), std::cout, std::cerr);
+   }
 }
 
 void CaliceAhcalBifBxidDataCollector::DoReceive(eudaq::ConnectionSPC idx, eudaq::EventSP ev) {
