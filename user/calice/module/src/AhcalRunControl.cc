@@ -54,6 +54,9 @@ void AhcalRunControl::Configure() {
    m_stop_filesize = conf->Get("STOP_RUN_AFTER_N_BYTES", 0);
    m_stop_events = conf->Get("STOP_RUN_AFTER_N_EVENTS", 0);
    m_next_conf_path = conf->Get("NEXT_RUN_CONF_FILE", "");
+   if (conf->Get("RUN_NUMBER", 0)) {
+      SetRunN(conf->Get("RUN_NUMBER", 0));
+   }
    conf->Print();
    RunControl::Configure();
 }
@@ -130,7 +133,7 @@ void AhcalRunControl::Exec() {
 
             if (m_next_conf_path.size()) {
                //TODO: check if file exists
-               EUDAQ_INFO("Reading new config file: "+m_next_conf_path);
+               EUDAQ_INFO("Reading new config file: " + m_next_conf_path);
                ReadConfigureFile(m_next_conf_path);
                Configure();
                std::this_thread::sleep_for(std::chrono::seconds(2));
