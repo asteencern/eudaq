@@ -837,7 +837,10 @@ void CaliceEasirocProducer::Mainloop() {
       EndADC = 0;
       //ForceStop = 0;
       std::cout << "End ADC" << std::endl;
+   } else{
+      m_redirectedInput.close();
    }
+
 
    if (m_writeRaw) {
       m_rawFile.close();
