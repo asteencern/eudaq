@@ -6,6 +6,8 @@
 
 #include <deque>
 
+#define TERMCOLOR_MAGENTA_BOLD "\033[35;1m"
+
 namespace eudaq {
 
    class ScReader: public AHCALReader {
@@ -68,6 +70,7 @@ namespace eudaq {
          const ScReader::RunTimeStatistics& getRunTimesStatistics() const;
          unsigned int getCycleNo() const;
          unsigned int getTrigId() const;
+         uint16_t grayRecode(const uint16_t partiallyDecoded);
 
       private:
          enum class UnfinishedPacketStates {
@@ -92,6 +95,7 @@ namespace eudaq {
          void buildValidatedBXIDEvents(std::deque<eudaq::EventUP> &EventQueue, bool dumpAll);
          void insertDummyEvent(std::deque<eudaq::EventUP> &EventQueue, int eventNumber, int triggerid, bool triggeridFlag);
          void prepareEudaqRawPacket(eudaq::RawEvent * ev);
+         void colorPrint(const std::string &colorString, const std::string& msg);
 
          static const unsigned char C_TSTYPE_START_ACQ = 0x01;
          static const unsigned char C_TSTYPE_STOP_ACQ = 0x02;
@@ -130,6 +134,8 @@ namespace eudaq {
          std::map<int, std::vector<std::vector<int> > > _LDAAsicData;              //maps readoutcycle to vector of "infodata"
 
          std::map<int, int> _DaqErrors;              // <ReadoutCycleNumber, ErrorMask> if errormas is 0, everything is OK
+
+         std::map<int,int> MaxBxid;//stores the lowest bxid number  for any memory cell 16 (cell 15 when counting from 0)
 
          RunTimeStatistics _RunTimesStatistics;
    }

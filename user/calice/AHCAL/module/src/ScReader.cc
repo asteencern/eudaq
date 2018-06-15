@@ -33,6 +33,10 @@ namespace eudaq {
       _LDAAsicData.clear(); //erase(_LDAAsicData.begin(), _LDAAsicData.end()); //clear();
       _LDATimestampData.clear();
       _RunTimesStatistics.clear();
+      _DaqErrors.clear();
+      MaxBxid.clear();
+      slowcontrol.clear();
+      ledInfo.clear();
       _unfinishedPacketState = UnfinishedPacketStates::DONE;
       switch (_producer->getEventMode()) {
          case AHCALProducer::EventBuildingMode::TRIGGERID:
@@ -153,7 +157,7 @@ namespace eudaq {
                         int ledOnOff = (unsigned char) buf[ibuf];	//led on/off
                         ledInfo.push_back(ledOnOff);
                         //cout << " Layer=" << ledId << " Voltage= " << ledV << " on/off=" << ledOnOff << endl;
-                        EUDAQ_EXTRA(" Layer=" + to_string(ledId) + " Voltage=" + to_string(ledV) + " on/off=" + to_string(ledOnOff));
+                        EUDAQ_EXTRA(" Layer=" + to_string(ledId) + " LED Voltage=" + to_string(ledV) + " on/off=" + to_string(ledOnOff));
                      }
                      // buf.pop_front();
                      buf.erase(buf.begin(), buf.begin() + ibuf - 1);	//LED info from buffer already saved, therefore can be deleted from buffer.
@@ -449,13 +453,13 @@ namespace eudaq {
       int keptEventCount = dumpAll ? 0 : _producer->getKeepBuffered(); //how many ROCs to keep in the data maps
       //      keptEventCount = 100000;
       while (_LDAAsicData.size() > keptEventCount) { //at least 2 finished ROC
-         int roc = _LDAAsicData.begin()->first; //_LDAAsicData.begin()->first;
+         const int roc = _LDAAsicData.begin()->first; //_LDAAsicData.begin()->first;
          std::vector<std::vector<int> > &data = _LDAAsicData.begin()->second;
-//create a table with BXIDs
-         std::map<int, std::vector<std::vector<int> > > bxids;
-//std::cout << "processing readout cycle " << roc << std::endl;
-//data from the readoutcycle to be sorted by BXID.
-         for (std::vector<int> &dit : data) { // = data.begin(); dit != data.end(); ++dit
+         //create a table with BXIDs
+         std::map<int, std::vector<std::vector<int> > > bxids; //bxids mapped to the ASIC packets.
+         //std::cout << "processing readout cycle " << roc << std::endl;
+         //data from the readoutcycle to be sorted by BXID.
+         for (std::vector<int> &dit : data) { //iterate over asic packets
             int bxid = (int) dit[1];
             //std::cout << "bxid " << (int) dit[1] << "\t chipid: " << (int) dit[3] << std::endl;
             std::vector<std::vector<int> >& sameBxidPackets = bxids.insert( { bxid, std::vector<std::vector<int> >() }).first->second;
@@ -464,26 +468,20 @@ namespace eudaq {
 
          uint64_t startTS = 0LLU;
          uint64_t stopTS = 0LLU;
-//get the list of bxid for the triggerIDs timestamps
-         std::multimap<int, std::tuple<int, uint64_t> > triggerBxids; //calculated_bxid, triggerid, timestamp
+         //get the list of bxid for the triggerIDs timestamps
+         std::multimap<int, std::tuple<int, uint64_t> > triggerBxids; //calculated_bxid, <triggerid, timestamp>
          if (_LDATimestampData.count(roc)) {
             //get the start of acquisition timestamp
             startTS = _LDATimestampData[roc].TS_Start;
             stopTS = _LDATimestampData[roc].TS_Stop;
             for (int i = 0; i < _LDATimestampData[roc].TS_Triggers.size(); ++i) {
                if (!startTS) {
-                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[31m";
-                  std::cout << "ERROR EB: Start timestamp is incorrect in ROC " << roc << ". Start=" << _LDATimestampData[roc].TS_Start << " STOP="
-                        << _LDATimestampData[roc].TS_Stop << std::endl;
-                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+                  colorPrint("\033[31m", "ERROR EB: Start timestamp is incorrect in ROC " + to_string(roc) + ". Start=" + to_string(_LDATimestampData[roc].TS_Start) + " STOP=" + to_string(_LDATimestampData[roc].TS_Stop));
                   break;
                }
                if (_LDATimestampData[roc].TS_Stop - _LDATimestampData[roc].TS_Start > 100 * C_MILLISECOND_TICS) {
-                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[33;1m";
-                  std::cout << "ERROR EB: Length of the acquisition is longer than 100 ms in run " << roc << std::endl;
-                  if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+                  colorPrint("\033[33;1m", "ERROR EB: Length of the acquisition is longer than 100 ms in ROC=" + to_string(roc));
                }
-
                uint64_t trigTS = _LDATimestampData[roc].TS_Triggers[i];
                int bxid = ((int64_t) trigTS - (int64_t) startTS - (int64_t) _producer->getAhcalbxid0Offset()) / _producer->getAhcalbxidWidth();
                //if ((bxid < 0) || (bxid > 4096)) std::cout << "\033[34mWARNING EB: calculated trigger bxid not in range: " << bxid << " in ROC " << roc << "\033[0m" << std::endl;
@@ -499,29 +497,37 @@ namespace eudaq {
             if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
          }
 
-//iterate over bxids from single ROC
+         //iterate over bxids from single ROC
          for (std::pair<const int, std::vector<std::vector<int> > > & sameBxidPackets : bxids) {
             //std::cout << "bxid: " << sameBxidPackets.first << "\tsize: " << sameBxidPackets.second.size() << std::endl;
-            int bxid = sameBxidPackets.first;
+            const int bxid = sameBxidPackets.first;
 
             if (triggerBxids.count(bxid) > 1) {
-               if (_producer->getColoredTerminalMessages()) std::cout << "\033[35;1m";
-               std::cout << "Warning EB: More triggers (" << triggerBxids.count(bxid) << ") within BXID=" << bxid << " ROC=" << roc << std::endl;
-               if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
+               colorPrint(TERMCOLOR_MAGENTA_BOLD, "Warning EB: More triggers (" + to_string(triggerBxids.count(bxid)) + ") within BXID=" + to_string(bxid) + " ROC=" + to_string(roc));
             }
             //there might be more external triggerIDs within one BXID, therefore we iterate over everything within the bxid
-            for (std::multimap<int, std::tuple<int, uint64_t> >::iterator trigIt = triggerBxids.find(bxid); trigIt != triggerBxids.end();
-                  trigIt = triggerBxids.find(bxid)) {
+            for (std::multimap<int, std::tuple<int, uint64_t> >::iterator trigIt = triggerBxids.find(bxid); trigIt != triggerBxids.end(); trigIt = triggerBxids.find(bxid)) {
+               //check whether the bxid is not from the time after the last memory cell was filled somewhere:
+               if (MaxBxid.count(roc)) {
+                  if (bxid > MaxBxid[roc]) {
+                     int asic = sameBxidPackets.second[0][3] & 0xFF;
+                     int module = (sameBxidPackets.second[0][3] >> 8) & 0xFF;
+                     std::cout << "DEBUG: skipped ROC=" << roc << " BXID=" << bxid << " Limit=" << MaxBxid[roc] << std::endl;
+                     if (bxid > (MaxBxid[roc] + 4)) {
+                        EUDAQ_ERROR_STREAMOUT("BXID " + to_string(bxid) + " way behind the end of acq(" + to_string(MaxBxid[roc]) + "). ROC="
+                              + to_string(roc) + " ASIC=" + to_string(asic) + " Module=" + to_string(module), std::cout, std::cerr);
+                     }
+                     break; //throw away potentially incomplete bxid, because previous bxid has ben reached by some memory cell 16
+                  }
+               }
                _RunTimesStatistics.builtBXIDs++;
-
                //trigger ID within the ROC is found at this place
-               int rawTrigId = std::get<0>(trigIt->second);
-               uint64_t trigTS = std::get<1>(trigIt->second);
+               int rawTrigId = std::get<0>(trigIt->second);               //get the triggerID from the iterator
+               uint64_t trigTS = std::get<1>(trigIt->second);               //get the trigger timestamp from the iterator
                while ((_producer->getInsertDummyPackets()) && (++_lastBuiltEventNr < (rawTrigId - _producer->getLdaTrigidOffset()))) {
                   //std::cout << "WARNING EB: inserting a dummy trigger: " << _lastBuiltEventNr << ", because " << _LDATimestampData[roc].TriggerIDs[i] << " is next" << std::endl;
                   insertDummyEvent(EventQueue, -1, _lastBuiltEventNr, false);
                }
-
                eudaq::EventUP nev = eudaq::Event::MakeUnique("CaliceObject");
                eudaq::RawEvent *nev_raw = dynamic_cast<RawEvent*>(nev.get());
                prepareEudaqRawPacket(nev_raw);
@@ -540,8 +546,14 @@ namespace eudaq {
                cycledata.push_back((uint32_t) (startTS >> 32));
                cycledata.push_back((uint32_t) (stopTS));
                cycledata.push_back((uint32_t) (stopTS >> 32));
-               cycledata.push_back((uint32_t) (std::get<1>(trigIt->second)));
-               cycledata.push_back((uint32_t) (std::get<1>(trigIt->second) >> 32));
+               int debugIntraBxidTriggers = 0;
+               while (trigIt != triggerBxids.end()) { //possible more triggers in the same bxid. store them all!
+                  debugIntraBxidTriggers++;
+                  cycledata.push_back((uint32_t) (std::get<1>(trigIt->second)));
+                  cycledata.push_back((uint32_t) (std::get<1>(trigIt->second) >> 32));
+                  triggerBxids.erase(trigIt);
+                  trigIt = triggerBxids.find(bxid);
+               }
                nev_raw->AppendBlock(6, cycledata);
 
                switch (_producer->getEventNumberingPreference()) {
@@ -566,12 +578,6 @@ namespace eudaq {
                   }
                }
                EventQueue.push_back(std::move(nev));
-               triggerBxids.erase(trigIt);
-            }
-
-            if (!triggerBxids.count(sameBxidPackets.first)) {
-               //no matching trigger validation information. Move on to another trigger
-               continue;
             }
          }
          _LDAAsicData.erase(_LDAAsicData.begin());
@@ -724,6 +730,15 @@ namespace eudaq {
 //data from the readoutcycle to be sorted by BXID.
          for (std::vector<int> &dit : data) { // = data.begin(); dit != data.end(); ++dit
             int bxid = (int) dit[1];
+            if (MaxBxid.count(roc)) {
+               if (bxid > (MaxBxid[roc] + 4)) {
+                  EUDAQ_ERROR_STREAMOUT("BXID " + to_string(bxid) + " way behind the end of acq(" + to_string(MaxBxid[roc]) + "). ROC="
+                        + to_string(roc) + " ASIC=" + to_string(dit[3] & 0xFF) + " Module=" + to_string(dit[3] >> 8), std::cout, std::cerr);
+               }
+               if (bxid > MaxBxid[roc]) {
+                  continue; //throw away potentially incomplete bxid, because previous bxid has ben reached by some memory cell 16
+               }
+            }
             //std::cout << "bxid " << (int) dit[1] << "\t chipid: " << (int) dit[3] << std::endl;
             std::vector<std::vector<int> >& sameBxidPackets = bxids.insert( { bxid, std::vector<std::vector<int> >() }).first->second;
             sameBxidPackets.push_back(std::move(dit));
@@ -1015,14 +1030,15 @@ namespace eudaq {
 //data from the readoutcycle.
       std::vector<std::vector<int> >& readoutCycle = AHCALData.insert( { _cycleNo, std::vector<std::vector<int> >() }).first->second;
 
-      deque<char>::iterator it = buf.begin() + e_sizeLdaHeader;
+      deque<char>::iterator buffer_it = buf.begin() + e_sizeLdaHeader;
 
 // footer check: ABAB
-      if ((unsigned char) it[length - 2] != 0xab || (unsigned char) it[length - 1] != 0xab) {
-         cout << "Footer abab invalid:" << (unsigned int) (unsigned char) it[length - 2] << " " << (unsigned int) (unsigned char) it[length - 1] << endl;
+      if ((unsigned char) buffer_it[length - 2] != 0xab || (unsigned char) buffer_it[length - 1] != 0xab) {
+         cout << "Footer abab invalid:" << (unsigned int) (unsigned char) buffer_it[length - 2] << " " << (unsigned int) (unsigned char) buffer_it[length - 1]
+               << endl;
          EUDAQ_WARN(
-               "Footer abab invalid:" + to_string((unsigned int )(unsigned char )it[length - 2]) + " "
-                     + to_string((unsigned int )(unsigned char )it[length - 1]));
+               "Footer abab invalid:" + to_string((unsigned int )(unsigned char )buffer_it[length - 2]) + " "
+                     + to_string((unsigned int )(unsigned char )buffer_it[length - 1]));
       }
       if ((length - 12) % 146) {
 //we check, that the data packets from DIF have proper sizes. The RAW packet size can be checked
@@ -1036,21 +1052,36 @@ namespace eudaq {
          return;
       }
 
-      int chipId = (unsigned char) it[length - 3] * 256 + (unsigned char) it[length - 4];
+      int chipId = (unsigned char) buffer_it[length - 3] * 256 + (unsigned char) buffer_it[length - 4];
       const int NChannel = 36;
-      int nscai = (length - 8) / (NChannel * 4 + 2);
-      uint8_t difId = it[6];
-      uint8_t chipIndex = it[4];      //only for debugging
-      uint8_t roChain = it[5];      //only for debugging
+      int MemoryCellsFilled = (length - 8) / (NChannel * 4 + 2);      //number of memory cells
+      uint8_t difId = buffer_it[6];
+      uint8_t chipIndex = buffer_it[4];      //only for debugging
+      uint8_t roChain = buffer_it[5];      //only for debugging
       //      std::cout << "Chipid=" << chipId << ", difID=" << (unsigned int) difId << ", chipIndex=" << (unsigned int) chipIndex << ", rochain="
 //            << (unsigned int) roChain << std::endl;
       chipId = ((chipId + _producer->getChipidAddBeforeMasking()) & (1 << _producer->getChipidKeepBits()) - 1) + _producer->getChipidAddAfterMasking();
       if (_producer->getAppendDifidToChipidBitPosition() > 0) chipId = chipId + (((unsigned int) difId) << _producer->getAppendDifidToChipidBitPosition()); //ADD the DIFID to the CHIPID
-      it += 8;
-      for (short tr = 0; tr < nscai; tr++) {
+      buffer_it += 8;
+      int previousBxid = -1;
+//      for (int memCell = 0; memCell < MemoryCellsFilled; memCell++) {
+      for (int memCell = MemoryCellsFilled - 1; memCell >= 0; memCell--) {
 // binary data: 128 words
-         int bxididx = e_sizeLdaHeader + length - 4 - (nscai - tr) * 2;
-         int bxid = (unsigned char) buf[bxididx + 1] * 256 + (unsigned char) buf[bxididx];
+         int bxididx = e_sizeLdaHeader + length - 4 - (MemoryCellsFilled - memCell) * 2;
+         int bxid = ((unsigned char) buf[bxididx + 1] << 8) | ((unsigned char) buf[bxididx]);
+         bxid = grayRecode(bxid);
+         if (bxid <= previousBxid) {
+            EUDAQ_ERROR("BXID not in sequence. " + to_string(bxid) + " after " + to_string(previousBxid) + ". ROC=" + to_string(_cycleNo) + " port=" + to_string(LDA_Header_port)
+                  + " Module=" + to_string((unsigned int )difId) + " Asic_index(from0)=" + to_string(chipId & 0xFF) + " Memory=" + to_string(MemoryCellsFilled - memCell - 1));
+         }
+         previousBxid = bxid;
+         if ((MemoryCellsFilled == 16) && (memCell == 0)) { //last memory cell = stop of the cycle is issued
+            if (MaxBxid[_cycleNo]) {
+               if (MaxBxid[_cycleNo] > bxid) MaxBxid[_cycleNo] = bxid; //update to the most restricting value
+            } else { //not initialized for this readout cycle
+               MaxBxid[_cycleNo] = bxid;
+            }
+         }
          if (bxid > 4096) {
             std::cout << "ERROR: processing too high BXID: " << bxid << " in ROC " << _cycleNo << ", port " << LDA_Header_port << std::endl;
             EUDAQ_WARN(" bxid = " + to_string(bxid));
@@ -1059,18 +1090,18 @@ namespace eudaq {
          vector<unsigned short> adc, tdc;
 
          for (int np = 0; np < NChannel; np++) {
-            unsigned short tdc_value = (unsigned char) it[np * 2] + ((unsigned char) it[np * 2 + 1] << 8);
-            unsigned short adc_value = (unsigned char) it[np * 2 + NChannel * 2] + ((unsigned char) it[np * 2 + 1 + NChannel * 2] << 8);
+            unsigned short tdc_value = (unsigned char) buffer_it[np * 2] + ((unsigned char) buffer_it[np * 2 + 1] << 8);
+            unsigned short adc_value = (unsigned char) buffer_it[np * 2 + NChannel * 2] + ((unsigned char) buffer_it[np * 2 + 1 + NChannel * 2] << 8);
             tdc.push_back(tdc_value);
             adc.push_back(adc_value);
          }
 
-         it += NChannel * 4;
+         buffer_it += NChannel * 4;
 
          vector<int> infodata;
          infodata.push_back((int) _cycleNo);
          infodata.push_back(bxid);
-         infodata.push_back(nscai - tr - 1); // memory cell is inverted
+         infodata.push_back(MemoryCellsFilled - memCell - 1); // memory cell is inverted
          infodata.push_back(chipId); //TODO add LDA number and port number in the higher bytes of the int
          infodata.push_back(NChannel);
 
@@ -1400,4 +1431,25 @@ namespace eudaq {
       return newvalue;
    }
 
+   uint16_t ScReader::grayRecode(const uint16_t partiallyDecoded) {
+      //recodes a partially decoded gray number. the 16-bit number is partially decoded for bits 0-11.
+      uint16_t Gray = partiallyDecoded;
+      uint16_t highPart = 0; //bits 12-15 are not decoded
+      while (Gray & 0xF000) {
+         highPart ^= Gray;
+         Gray >>= 1;
+      }
+      if (highPart & 0x1000) {
+         return ((highPart & 0xF000) | ((~partiallyDecoded) & 0xFFF)); //invert the originally decoded data (the bits 0-11)
+      } else {
+         return ((highPart & 0xF000) | (partiallyDecoded & 0xFFF)); //combine the low and high part
+      }
+   }
+
+   void ScReader::colorPrint(const std::string &colorString, const std::string & msg) {
+      if (_producer->getColoredTerminalMessages()) std::cout << colorString; //"\033[31m";
+      std::cout << msg;
+      std::cout << std::endl;
+      if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m"; //reset the color back to normal
+   }
 }
