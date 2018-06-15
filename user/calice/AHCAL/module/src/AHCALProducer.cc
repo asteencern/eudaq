@@ -92,7 +92,7 @@ void AHCALProducer::DoConfigure() {
    _KeepBuffered = param.Get("KeepBuffered", 10);
    _maxRocJump = param.Get("MaximumROCJump", 50);
 
-   _ChipidKeepBits = param.Get("ChipidKeepBits", 0);
+   _ChipidKeepBits = param.Get("ChipidKeepBits", 8);
    _ChipidAddBeforeMasking = param.Get("ChipidAddBeforeMasking", 0);
    _ChipidAddAfterMasking = param.Get("ChipidAddAfterMasking", 0);
    _AppendDifidToChipidBitPosition = param.Get("AppendDifidToChipidBitPosition", -1);
