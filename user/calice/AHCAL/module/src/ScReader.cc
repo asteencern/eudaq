@@ -455,7 +455,7 @@ namespace eudaq {
       while (_LDAAsicData.size() > keptEventCount) { //at least 2 finished ROC
          const int roc = _LDAAsicData.begin()->first; //_LDAAsicData.begin()->first;
          std::vector<std::vector<int> > &data = _LDAAsicData.begin()->second;
-         //create a table with BXIDs
+         //create a table with BXIDs:
          std::map<int, std::vector<std::vector<int> > > bxids; //bxids mapped to the ASIC packets.
          //std::cout << "processing readout cycle " << roc << std::endl;
          //data from the readoutcycle to be sorted by BXID.
@@ -484,7 +484,7 @@ namespace eudaq {
                }
                uint64_t trigTS = _LDATimestampData[roc].TS_Triggers[i];
                int bxid = ((int64_t) trigTS - (int64_t) startTS - (int64_t) _producer->getAhcalbxid0Offset()) / _producer->getAhcalbxidWidth();
-               //if ((bxid < 0) || (bxid > 4096)) std::cout << "\033[34mWARNING EB: calculated trigger bxid not in range: " << bxid << " in ROC " << roc << "\033[0m" << std::endl;
+//               if ((bxid < 0) || (bxid > 4096)) std::cout << "\033[34mWARNING EB: calculated trigger bxid not in range: " << bxid << " in ROC " << roc << "\033[0m" << std::endl;
                int triggerId = _LDATimestampData[roc].TriggerIDs[i];
                triggerBxids.insert( { bxid, std::tuple<int, uint64_t>(triggerId, trigTS) });
                //std::pair std::pair<int, uint64_t>(triggerId, trigTS);
@@ -1063,19 +1063,21 @@ namespace eudaq {
       chipId = ((chipId + _producer->getChipidAddBeforeMasking()) & (1 << _producer->getChipidKeepBits()) - 1) + _producer->getChipidAddAfterMasking();
       if (_producer->getAppendDifidToChipidBitPosition() > 0) chipId = chipId + (((unsigned int) difId) << _producer->getAppendDifidToChipidBitPosition()); //ADD the DIFID to the CHIPID
       buffer_it += 8;
-      int previousBxid = -1;
+      int previousBxid = 65535;
 //      for (int memCell = 0; memCell < MemoryCellsFilled; memCell++) {
       for (int memCell = MemoryCellsFilled - 1; memCell >= 0; memCell--) {
 // binary data: 128 words
-         int bxididx = e_sizeLdaHeader + length - 4 - (MemoryCellsFilled - memCell) * 2;
+         int bxididx = e_sizeLdaHeader + length - 6 - memCell * 2;
+//         int bxididx = e_sizeLdaHeader + length - 4 - (memCell) * 2;
          int bxid = ((unsigned char) buf[bxididx + 1] << 8) | ((unsigned char) buf[bxididx]);
-         bxid = grayRecode(bxid);
-         if (bxid <= previousBxid) {
-            EUDAQ_ERROR("BXID not in sequence. " + to_string(bxid) + " after " + to_string(previousBxid) + ". ROC=" + to_string(_cycleNo) + " port=" + to_string(LDA_Header_port)
+//         bxid = grayRecode(bxid);
+//         std::cout << "#>>DEBUG idx=" << bxididx << "\tbxid=" << bxid << "\tcell=" << memCell << "\tfilled=" << MemoryCellsFilled << std::endl;
+         if (bxid > previousBxid) {
+            EUDAQ_ERROR("BXID not in sequence. " + to_string(previousBxid) + " after " + to_string(bxid) + ". ROC=" + to_string(_cycleNo) + " port=" + to_string(LDA_Header_port)
                   + " Module=" + to_string((unsigned int )difId) + " Asic_index(from0)=" + to_string(chipId & 0xFF) + " Memory=" + to_string(MemoryCellsFilled - memCell - 1));
          }
          previousBxid = bxid;
-         if ((MemoryCellsFilled == 16) && (memCell == 0)) { //last memory cell = stop of the cycle is issued
+         if (memCell == 15) { //last memory cell = stop of the cycle is issued
             if (MaxBxid[_cycleNo]) {
                if (MaxBxid[_cycleNo] > bxid) MaxBxid[_cycleNo] = bxid; //update to the most restricting value
             } else { //not initialized for this readout cycle
@@ -1101,7 +1103,8 @@ namespace eudaq {
          vector<int> infodata;
          infodata.push_back((int) _cycleNo);
          infodata.push_back(bxid);
-         infodata.push_back(MemoryCellsFilled - memCell - 1); // memory cell is inverted
+         infodata.push_back(memCell); // memory cell is inverted
+//         infodata.push_back(MemoryCellsFilled - memCell - 1); // memory cell is inverted
          infodata.push_back(chipId); //TODO add LDA number and port number in the higher bytes of the int
          infodata.push_back(NChannel);
 
