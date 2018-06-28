@@ -406,7 +406,7 @@ void AHCALProducer::RunLoop() {
    _stopped = 1;
    bufRead.clear();
    deqEvent.clear();
-   EUDAQ_INFO_STREAMOUT("Completed ROC=" + std::to_string(dynamic_cast<ScReader*>(_reader)->getCycleNo()) +
+   EUDAQ_INFO_STREAMOUT("Completed Run "+std::to_string(GetRunNumber())+". ROC=" + std::to_string(dynamic_cast<ScReader*>(_reader)->getCycleNo()) +
          ", Triggers=" + std::to_string(dynamic_cast<ScReader*>(_reader)->getTrigId() - getLdaTrigidOffset()) +
          ", Events=" + std::to_string(_eventNo), std::cout, std::cerr);
 #ifdef _WIN32
