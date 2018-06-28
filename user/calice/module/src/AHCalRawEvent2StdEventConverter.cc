@@ -9,7 +9,7 @@
 #define planesXsize 24
 #define planesYsize 24
 
-#define planeCount 49
+#define planeCount 54
 #define pedestalLimit 0 //minimum adc value, that will be displayed
 #define eventSizeLimit 1 //minimum size of the event which will be displayed
 
@@ -35,8 +35,9 @@ class AHCalRawEvent2StdEventConverter: public eudaq::StdEventConverter {
          { 38, 34 }, { 37, 35 }, { 29, 36 }, { 33, 37 },
          { 34, 38 }, 
          { 41, 39 }, //tokyo module
-         { 36, 40 },//SM100
-         { 43, 41 }, { 44, 42 }, { 45, 43 }, { 46, 44 }, { 47, 45 }, {48, 46}, //SM_1,2,4,5,7
+         { 36, 40 },
+         { 43, 41 },//SM100
+         { 44, 42 }, { 45, 43 }, { 46, 44 }, { 47, 45 }, {48, 46}, //SM_1,2,4,5,7
          { 49, 47 }, {50,48}, {51,49},{52,50},{53,51},{54,52}//HBU3_1..6
       };
 
