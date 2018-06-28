@@ -470,6 +470,14 @@ void OnlineMonWindow::actor(TGListTreeItem *item, Int_t /*btn*/) {
       d1 = 7;
       d2 = 7;
     }
+    if (s>49) {
+       d1 = 8;
+       d2 = 7;
+    }
+    if (s>56) {
+       d1 = 8;
+       d2 = 8;
+    }
     fCanvas->Divide(d2, d1);
   }
   autoUpdate();
