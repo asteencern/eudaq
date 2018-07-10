@@ -306,6 +306,13 @@ namespace eudaq {
                readLDATimestamp(buf, _LDATimestampData);
                continue;
             }
+            if ((length == 0x08) && (status == 0x10) && ((unsigned char) buf[10] == 0x02) && ((unsigned char) buf[11] == 0x83) && ((unsigned char) buf[12] == 0x00) && ((unsigned char) buf[13] == 0x80)) {
+               // packets for system configuration, enable/disable TS packets
+               // timestamp enable packets: cd cd     08 00 00 00 0b 80 00 10     02 83 00 80 05 00 ab ab
+               //                           0  1      2  3  4  5  6  7  8  9      10  1  2  3  4  5  6  7
+               buf.erase(buf.begin(), buf.begin() + length + e_sizeLdaHeader);
+               continue;
+            }
 
             if (!(status & 0x40)) {  //cd cd 0c 00 54 00 0b 08 02 20 02 cc 0f 0f 0e 00 03 00 00 00 00 00
                //We'll drop non-ASIC data packet;
@@ -512,7 +519,7 @@ namespace eudaq {
                   if (bxid > MaxBxid[roc]) {
                      int asic = sameBxidPackets.second[0][3] & 0xFF;
                      int module = (sameBxidPackets.second[0][3] >> 8) & 0xFF;
-                     std::cout << "DEBUG: skipped ROC=" << roc << " BXID=" << bxid << " Limit=" << MaxBxid[roc] << std::endl;
+                     std::cout << "Info: skipped BXID="<<bxid<<" in ROC=" << roc << ". Another layer got full at bxid=" << MaxBxid[roc] << std::endl;
                      if (bxid > (MaxBxid[roc] + 4)) {
                         EUDAQ_ERROR_STREAMOUT("BXID " + to_string(bxid) + " way behind the end of acq(" + to_string(MaxBxid[roc]) + "). ROC="
                               + to_string(roc) + " ASIC=" + to_string(asic) + " Module=" + to_string(module), std::cout, std::cerr);
